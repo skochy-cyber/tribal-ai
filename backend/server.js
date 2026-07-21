@@ -213,7 +213,7 @@ async function seedAdmin() {
 app.use(cors({ origin: ALLOWED_ORIGIN === '*' ? '*' : ALLOWED_ORIGIN, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(__dirname));
 
 const apiLimiter = rateLimit({ windowMs: 15*60*1000, max: 500, message: { error: 'Too many requests' } });
 const chatLimit  = rateLimit({ windowMs: 1*60*1000, max: 30, message: { error: 'Slow down — too many messages' } });
@@ -2587,7 +2587,7 @@ app.get('/api/changelog', (req, res) => {
 app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '5.0.0', db: MONGO_URI ? 'mongodb' : 'memory', features: ['chat','upload','share','export','referrals','payments','api','social-login','multi-model','web-search','templates','teams','streaming','code-exec','memory','image-gen','tts','folders','branching','shortcuts','translate','2fa','sessions','analytics','search','pin','archive','edit-resend','reactions','alerts','audit','status','contact','changelog'], uptime: Math.floor(process.uptime()) }));
 
 app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) res.sendFile(path.join(__dirname, '..', 'index.html'));
+  if (!req.path.startsWith('/api')) res.sendFile(path.join(__dirname, 'index.html'));
   else res.status(404).json({ error: 'Not found' });
 });
 
