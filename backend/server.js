@@ -18,7 +18,7 @@ require('dotenv').config();
 
 const app        = express();
 const PORT       = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'tribal-ai-dev-secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'd2f2a84faf1d4b982f6f4fd25ed2fefbee860aa8689ab2e1826e762d7c60068a';
 const MONGO_URI  = process.env.MONGO_URI;
 const ADMIN_EMAIL    = process.env.ADMIN_EMAIL || 'obasanjosamuel404@gmail.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Obasanjo444@@';
