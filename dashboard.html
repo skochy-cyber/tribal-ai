@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--blue:#3b82f6;--blue-bg:rgba(59,130,246,.1);--purple:#a855f7;--purple-bg:rgba(168,85,247,.1);--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+
+.topbar{height:64px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 6%;gap:16px;position:sticky;top:0;z-index:10}
+.topbar .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.topbar .mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.topbar-right a{font-size:.82rem;color:var(--ink3);text-decoration:none;padding:6px 14px;border-radius:8px;border:1px solid var(--border2);transition:.15s}
+.topbar-right a:hover{background:var(--bg3);color:var(--ink)}
+.topbar-right .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+main{padding:32px 6%;max-width:900px;margin:0 auto}
+h1{font-family:'Instrument Serif',serif;font-size:1.8rem;font-weight:400;margin-bottom:8px}
+.sub{font-size:.88rem;color:var(--ink3);margin-bottom:32px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px}
+.stat-card .icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;margin-bottom:12px}
+.stat-card .icon svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none}
+.icon-accent{background:var(--accent-bg);color:var(--accent)}
+.icon-green{background:var(--green-bg);color:var(--green)}
+.icon-blue{background:var(--blue-bg);color:var(--blue)}
+.icon-purple{background:var(--purple-bg);color:var(--purple)}
+.stat-card .label{font-size:.76rem;color:var(--ink4);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.stat-card .value{font-family:'Instrument Serif',serif;font-size:1.6rem;color:var(--ink)}
+
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:24px;overflow:hidden}
+.section-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.section-header h3{font-size:.92rem;font-weight:700}
+.section-body{padding:20px}
+
+.plan-card{display:flex;align-items:center;gap:16px;padding:16px;background:var(--bg3);border-radius:var(--r)}
+.plan-card .plan-icon{width:48px;height:48px;border-radius:12px;background:var(--accent-bg);display:grid;place-items:center;color:var(--accent);font-family:'Instrument Serif',serif;font-size:1.2rem;font-weight:700}
+.plan-card .plan-info{flex:1}
+.plan-card .plan-name{font-size:1rem;font-weight:700;margin-bottom:2px}
+.plan-card .plan-desc{font-size:.82rem;color:var(--ink3)}
+.plan-card .plan-limit{font-size:.78rem;color:var(--ink4);margin-top:4px}
+.plan-card .btn{padding:8px 16px;border-radius:8px;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid var(--border2);background:transparent;color:var(--ink3);transition:.15s}
+.plan-card .btn:hover{background:var(--bg);color:var(--ink)}
+
+.usage-bar{height:8px;background:var(--bg3);border-radius:4px;margin-top:12px;overflow:hidden}
+.usage-fill{height:100%;background:var(--accent);border-radius:4px;transition:.3s}
+
+.history-list{list-style:none}
+.history-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.history-item:last-child{border-bottom:none}
+.history-item .hi-icon{width:36px;height:36px;border-radius:8px;background:var(--bg3);display:grid;place-items:center;color:var(--ink3);flex-shrink:0}
+.history-item .hi-icon svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+.history-item .hi-info{flex:1}
+.history-item .hi-title{font-size:.88rem;font-weight:600;margin-bottom:2px}
+.history-item .hi-meta{font-size:.76rem;color:var(--ink4)}
+.history-item .hi-action{font-size:.78rem;color:var(--accent);text-decoration:none;cursor:pointer}
+.history-item .hi-action:hover{text-decoration:underline}
+.empty{text-align:center;padding:32px;color:var(--ink4);font-size:.88rem}
+
+footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);color:var(--ink4);font-size:.74rem;text-align:center;margin-top:40px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="topbar-right">
+    <a href="/">Chat</a>
+    <a href="settings.html">Settings</a>
+    <a href="/" class="btn-primary">New Chat</a>
+  </div>
+</div>
+
+<main>
+  <h1>Welcome back, <span id="userName">User</span> 👋</h1>
+  <p class="sub">Here's your usage overview.</p>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="icon icon-accent">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="label">Messages Used</div>
+      <div class="value" id="statUsed">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon icon-green">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="label">Remaining</div>
+      <div class="value" id="statRemaining">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon icon-blue">
+        <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <div class="label">Total Chats</div>
+      <div class="value" id="statChats">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon icon-purple">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="label">Member Since</div>
+      <div class="value" id="statJoined">—</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h3>Current Plan</h3>
+    </div>
+    <div class="section-body">
+      <div class="plan-card">
+        <div class="plan-icon" id="planIcon">F</div>
+        <div class="plan-info">
+          <div class="plan-name" id="planName">Free Plan</div>
+          <div class="plan-desc" id="planDesc">50 messages per month</div>
+          <div class="plan-limit" id="planLimit">0 / 50 used</div>
+          <div class="usage-bar"><div class="usage-fill" id="usageFill" style="width:0%"></div></div>
+        </div>
+        <a class="btn" href="pricing.html" id="planBtn">Upgrade</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h3>Recent Chats</h3>
+      <a href="/" style="font-size:.82rem;color:var(--accent);text-decoration:none">View All →</a>
+    </div>
+    <div class="section-body">
+      <ul class="history-list" id="chatHistory">
+        <li class="empty">Loading...</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+
+<script>
+const token = localStorage.getItem('ta_token');
+const user = JSON.parse(localStorage.getItem('ta_user') || 'null');
+if (!token || !user) window.location.href = 'login.html';
+
+const API = '';
+const FREE_LIMIT = 50;
+const PRO_LIMIT = 9999;
+
+document.getElementById('userName').textContent = user?.name || user?.email?.split('@')[0] || 'User';
+
+async function loadDashboard() {
+  try {
+    // Load user info
+    const meR = await fetch(`${API}/api/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!meR.ok) { window.location.href = 'login.html'; return; }
+    const me = await meR.json();
+
+    const plan = me.plan || 'free';
+    const limit = plan === 'pro' ? PRO_LIMIT : FREE_LIMIT;
+    const used = me.messagesThisMonth || 0;
+    const remaining = Math.max(0, limit - used);
+    const pct = Math.min(100, (used / limit) * 100);
+
+    document.getElementById('statUsed').textContent = used;
+    document.getElementById('statRemaining').textContent = remaining;
+    document.getElementById('statChats').textContent = me.totalMessages || 0;
+    document.getElementById('statJoined').textContent = new Date(me.createdAt).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+
+    // Plan card
+    document.getElementById('planIcon').textContent = plan === 'pro' ? 'P' : 'F';
+    document.getElementById('planName').textContent = plan === 'pro' ? 'Pro Plan' : 'Free Plan';
+    document.getElementById('planDesc').textContent = plan === 'pro' ? 'Unlimited messages' : '50 messages per month';
+    document.getElementById('planLimit').textContent = `${used} / ${limit} used`;
+    document.getElementById('usageFill').style.width = pct + '%';
+    if (plan === 'pro') {
+      document.getElementById('planBtn').textContent = 'Current Plan';
+      document.getElementById('planBtn').style.pointerEvents = 'none';
+      document.getElementById('planBtn').style.opacity = '.5';
+    }
+
+    // Load chats
+    const chatsR = await fetch(`${API}/api/chats`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (chatsR.ok) {
+      const chats = await chatsR.json();
+      const el = document.getElementById('chatHistory');
+      if (!chats.length) {
+        el.innerHTML = '<li class="empty">No chats yet. <a href="/" style="color:var(--accent)">Start one →</a></li>';
+      } else {
+        el.innerHTML = chats.slice(0, 10).map(c => `
+          <li class="history-item">
+            <div class="hi-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div class="hi-info">
+              <div class="hi-title">${esc(c.title)}</div>
+              <div class="hi-meta">${esc(c.model || 'claude-sonnet-4')} · ${fmtDate(c.updatedAt || c.createdAt)}</div>
+            </div>
+            <a class="hi-action" href="/?chat=${c._id}">Open →</a>
+          </li>
+        `).join('');
+      }
+    }
+  } catch (e) {
+    console.error('Dashboard load error:', e);
+  }
+}
+
+function esc(t) { return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+document.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
+</body>
+</html>

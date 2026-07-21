@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--red:#ef4444;--red-bg:rgba(239,68,68,.1);--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+
+.topbar{height:64px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 6%;gap:16px;position:sticky;top:0;z-index:10}
+.topbar .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.topbar .mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.topbar-right a{font-size:.82rem;color:var(--ink3);text-decoration:none;padding:6px 14px;border-radius:8px;border:1px solid var(--border2);transition:.15s}
+.topbar-right a:hover{background:var(--bg3);color:var(--ink)}
+
+main{padding:32px 6%;max-width:680px;margin:0 auto}
+h1{font-family:'Instrument Serif',serif;font-size:1.8rem;font-weight:400;margin-bottom:8px}
+.sub{font-size:.88rem;color:var(--ink3);margin-bottom:32px}
+
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:24px;overflow:hidden}
+.section-header{padding:16px 20px;border-bottom:1px solid var(--border)}
+.section-header h3{font-size:.92rem;font-weight:700}
+.section-body{padding:20px}
+
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:.78rem;font-weight:600;margin-bottom:6px;color:var(--ink3)}
+.fi{width:100%;padding:.82rem 1rem;border:1.5px solid var(--border);border-radius:var(--r);background:var(--bg3);color:var(--ink);font:inherit;font-size:.9rem;outline:none;transition:.15s}
+.fi:focus{background:var(--bg);border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg)}
+.fi::placeholder{color:var(--ink4)}
+
+.btn{padding:10px 20px;border-radius:var(--r);font:inherit;font-weight:700;font-size:.88rem;cursor:pointer;transition:.2s;border:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.btn-danger:hover{background:rgba(239,68,68,.15)}
+.btn-ghost{background:transparent;color:var(--ink3);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--bg3);color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.form-row{display:flex;gap:12px;align-items:flex-end}
+.form-row .fg{flex:1}
+
+.toast-wrap{position:fixed;top:80px;right:24px;z-index:100}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 20px;font-size:.84rem;color:var(--ink2);box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideIn .3s ease}
+.toast.ok{border-color:rgba(34,197,94,.3)}
+.toast.err{border-color:rgba(239,68,68,.3);color:var(--red)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+.danger-zone{border-color:rgba(239,68,68,.2)}
+
+footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);color:var(--ink4);font-size:.74rem;text-align:center;margin-top:40px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="topbar-right">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="/">Chat</a>
+  </div>
+</div>
+
+<main>
+  <h1>Settings</h1>
+  <p class="sub">Manage your account and preferences.</p>
+
+  <div class="section">
+    <div class="section-header"><h3>Profile</h3></div>
+    <div class="section-body">
+      <form id="profileForm">
+        <div class="fg">
+          <label for="name">Full Name</label>
+          <input class="fi" id="name" type="text" placeholder="Your name">
+        </div>
+        <div class="fg">
+          <label for="email">Email Address</label>
+          <input class="fi" id="email" type="email" placeholder="you@example.com" disabled style="opacity:.6">
+          <div style="font-size:.72rem;color:var(--ink4);margin-top:4px">Email cannot be changed</div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><h3>Change Password</h3></div>
+    <div class="section-body">
+      <form id="passwordForm">
+        <div class="fg">
+          <label for="currentPassword">Current Password</label>
+          <input class="fi" id="currentPassword" type="password" placeholder="Current password" autocomplete="current-password">
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label for="newPassword">New Password</label>
+            <input class="fi" id="newPassword" type="password" placeholder="At least 6 characters" autocomplete="new-password" minlength="6">
+          </div>
+          <div class="fg">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input class="fi" id="confirmPassword" type="password" placeholder="Repeat new password" autocomplete="new-password">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="changePassBtn">Update Password</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><h3>Plan & Subscription</h3></div>
+    <div class="section-body">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+        <div style="width:48px;height:48px;border-radius:12px;background:var(--accent-bg);display:grid;place-items:center;color:var(--accent);font-family:'Instrument Serif',serif;font-size:1.2rem;font-weight:700" id="planIcon">F</div>
+        <div>
+          <div style="font-weight:700;margin-bottom:2px" id="planName">Free Plan</div>
+          <div style="font-size:.82rem;color:var(--ink3)" id="planDesc">50 messages per month</div>
+        </div>
+      </div>
+      <a class="btn btn-ghost" href="pricing.html" id="planBtn">Upgrade to Pro →</a>
+    </div>
+  </div>
+
+  <div class="section danger-zone">
+    <div class="section-header"><h3 style="color:var(--red)">Danger Zone</h3></div>
+    <div class="section-body" style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-weight:600;margin-bottom:4px">Delete Account</div>
+        <div style="font-size:.82rem;color:var(--ink3)">Permanently delete your account and all data</div>
+      </div>
+      <button class="btn btn-danger" onclick="confirmDelete()">Delete Account</button>
+    </div>
+  </div>
+</main>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+
+<script>
+const token = localStorage.getItem('ta_token');
+const user = JSON.parse(localStorage.getItem('ta_user') || 'null');
+if (!token || !user) window.location.href = 'login.html';
+
+const API = '';
+
+// Pre-fill
+document.getElementById('name').value = user?.name || '';
+document.getElementById('email').value = user?.email || '';
+
+if (user?.plan === 'pro') {
+  document.getElementById('planIcon').textContent = 'P';
+  document.getElementById('planName').textContent = 'Pro Plan';
+  document.getElementById('planDesc').textContent = 'Unlimited messages';
+  document.getElementById('planBtn').textContent = 'Current Plan';
+  document.getElementById('planBtn').style.pointerEvents = 'none';
+  document.getElementById('planBtn').style.opacity = '.5';
+}
+
+// Save profile
+document.getElementById('profileForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('saveProfileBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    const r = await fetch(`${API}/api/me`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ name: document.getElementById('name').value.trim() })
+    });
+    if (!r.ok) throw new Error('Failed to save');
+    const data = await r.json();
+    // Update local storage
+    const updatedUser = { ...user, name: document.getElementById('name').value.trim() };
+    localStorage.setItem('ta_user', JSON.stringify(updatedUser));
+    toast('Profile updated', 'ok');
+  } catch (err) {
+    toast(err.message || 'Failed to save', 'err');
+  } finally { btn.disabled = false; btn.textContent = 'Save Changes'; }
+});
+
+// Change password
+document.getElementById('passwordForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const newPass = document.getElementById('newPassword').value;
+  const confirm = document.getElementById('confirmPassword').value;
+  if (newPass !== confirm) { toast('Passwords do not match', 'err'); return; }
+  if (newPass.length < 6) { toast('Password must be at least 6 characters', 'err'); return; }
+  const btn = document.getElementById('changePassBtn');
+  btn.disabled = true; btn.textContent = 'Updating...';
+  try {
+    const r = await fetch(`${API}/api/me/password`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ currentPassword: document.getElementById('currentPassword').value, newPassword: newPass })
+    });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Failed'); }
+    toast('Password updated', 'ok');
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+  } catch (err) {
+    toast(err.message || 'Failed to update password', 'err');
+  } finally { btn.disabled = false; btn.textContent = 'Update Password'; }
+});
+
+function confirmDelete() {
+  if (confirm('This will permanently delete your account and all data. Are you sure?')) {
+    toast('Account deletion requested. Contact support to confirm.', 'ok');
+  }
+}
+
+function toast(msg, type = 'ok') {
+  const wrap = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, 3000);
+}
+</script>
+</body>
+</html>
