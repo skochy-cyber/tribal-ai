@@ -220,6 +220,15 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
       <button class="topbar-btn" onclick="showMemoryModal()" title="Memory">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
       </button>
+      <button class="topbar-btn" onclick="showAnalytics()" title="Analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+      </button>
+      <button class="topbar-btn" onclick="showSessions()" title="Sessions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </button>
+      <button class="topbar-btn" onclick="showTranslateModal()" title="Translate">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </button>
       <button class="topbar-btn" id="authBtn" onclick="showAuth('login')">Sign In</button>
     </div>
   </div>
@@ -420,6 +429,78 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeFolderModal()">Cancel</button>
       <button class="btn" onclick="createFolder()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYTICS MODAL -->
+<div class="modal-bg" id="analyticsModal">
+  <div class="modal" style="max-width:500px">
+    <h2>📊 Your Analytics</h2>
+    <div id="analyticsContent" style="padding:16px 0"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- SESSIONS MODAL -->
+<div class="modal-bg" id="sessionsModal">
+  <div class="modal" style="max-width:500px">
+    <h2>🔐 Active Sessions</h2>
+    <div id="sessionsContent" style="max-height:300px;overflow-y:auto;margin:16px 0"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="revokeAllSessions()" style="background:rgba(239,68,68,.1);color:var(--accent);border:1px solid rgba(200,75,9,.2)">Revoke All</button>
+      <button class="btn btn-ghost" onclick="closeAllModals()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSLATE MODAL -->
+<div class="modal-bg" id="translateModal">
+  <div class="modal">
+    <h2>🌍 Translate</h2>
+    <div class="fg">
+      <label>Text</label>
+      <textarea id="translateText" placeholder="Text to translate"></textarea>
+    </div>
+    <div class="fg">
+      <label>Target Language</label>
+      <select id="translateLang" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--ink);font:inherit">
+        <option value="en">English</option>
+        <option value="yo">Yoruba</option>
+        <option value="ig">Igbo</option>
+        <option value="ha">Hausa</option>
+        <option value="fr">French</option>
+        <option value="es">Spanish</option>
+        <option value="pt">Portuguese</option>
+        <option value="ar">Arabic</option>
+        <option value="zh">Chinese</option>
+        <option value="ja">Japanese</option>
+        <option value="ko">Korean</option>
+        <option value="de">German</option>
+      </select>
+    </div>
+    <pre id="translateResult" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:.88rem;max-height:150px;overflow:auto;margin-top:12px"></pre>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Close</button>
+      <button class="btn" onclick="doTranslate()" id="translateBtn">Translate</button>
+    </div>
+  </div>
+</div>
+
+<!-- BRANCH MODAL -->
+<div class="modal-bg" id="branchModal">
+  <div class="modal" style="max-width:500px">
+    <h2>🔀 Branch Chat</h2>
+    <p>Fork this conversation from a specific message to explore a different direction.</p>
+    <div class="fg">
+      <label>Branch from message #</label>
+      <input type="number" id="branchIdx" min="0" placeholder="0">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Cancel</button>
+      <button class="btn" onclick="createBranch()">Create Branch</button>
     </div>
   </div>
 </div>
@@ -935,7 +1016,21 @@ async function saveInstructions() {
 }
 
 // ── UI Helpers ──────────────────────────────────────────────────────────
-function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  // Keyboard shortcuts
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('inputBox').focus(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); newChat(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); toggleSidebar(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'e') { e.preventDefault(); exportChat(); }
+  if (e.key === 'Escape') { closeAllModals(); }
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'L') { e.preventDefault(); toggleTheme(); }
+}
+function closeAllModals() {
+  ['authModal','settingsModal','referralModal','paymentModal','codeModal','imageModal','memoryModal','folderModal','analyticsModal','branchModal','sessionsModal','translateModal'].forEach(id => {
+    document.getElementById(id)?.classList.remove('open');
+  });
+}
 function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 200) + 'px'; }
 function updateSendBtn() { document.getElementById('sendBtn').classList.toggle('active', document.getElementById('inputBox').value.trim().length > 0 || pendingFiles.length > 0); document.getElementById('charCount').textContent = document.getElementById('inputBox').value.length; }
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
@@ -1048,6 +1143,95 @@ async function createFolder() {
       body: JSON.stringify({ name, color })
     });
     closeFolderModal(); toast('Folder created', 'ok');
+  } catch { toast('Failed', 'err'); }
+}
+
+// ── Analytics ──────────────────────────────────────────────────────────────
+function showAnalytics() { document.getElementById('analyticsModal').classList.add('open'); loadAnalytics(); }
+async function loadAnalytics() {
+  const el = document.getElementById('analyticsContent');
+  el.innerHTML = '<div style="text-align:center;color:var(--ink4);padding:20px">Loading...</div>';
+  try {
+    const r = await fetch(`${API}/api/analytics`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) {
+      const d = await r.json();
+      el.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:var(--bg3);padding:12px;border-radius:8px"><div style="font-size:.72rem;color:var(--ink4)">Messages This Month</div><div style="font-size:1.4rem;font-weight:700">${d.messagesThisMonth}</div></div>
+          <div style="background:var(--bg3);padding:12px;border-radius:8px"><div style="font-size:.72rem;color:var(--ink4)">Total Messages</div><div style="font-size:1.4rem;font-weight:700">${d.totalMessages}</div></div>
+          <div style="background:var(--bg3);padding:12px;border-radius:8px"><div style="font-size:.72rem;color:var(--ink4)">Total Chats</div><div style="font-size:1.4rem;font-weight:700">${d.chatCount}</div></div>
+          <div style="background:var(--bg3);padding:12px;border-radius:8px"><div style="font-size:.72rem;color:var(--ink4)">Plan</div><div style="font-size:1.4rem;font-weight:700;text-transform:capitalize">${d.plan}</div></div>
+        </div>
+        <div style="margin-top:16px;font-size:.82rem;color:var(--ink3)">
+          <div>Model usage: ${Object.entries(d.modelUsage || {}).map(([k,v]) => `${k}: ${v}`).join(', ') || 'None'}</div>
+          <div style="margin-top:4px">Member since: ${new Date(d.memberSince).toLocaleDateString()}</div>
+        </div>
+      `;
+    }
+  } catch { el.innerHTML = '<div style="text-align:center;color:var(--ink4)">Failed to load</div>'; }
+}
+
+// ── Sessions ──────────────────────────────────────────────────────────────
+function showSessions() { document.getElementById('sessionsModal').classList.add('open'); loadSessions(); }
+async function loadSessions() {
+  const el = document.getElementById('sessionsContent');
+  el.innerHTML = '<div style="text-align:center;color:var(--ink4);padding:20px">Loading...</div>';
+  try {
+    const r = await fetch(`${API}/api/sessions`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) {
+      const data = await r.json();
+      const sessions = data.sessions || [];
+      if (!sessions.length) { el.innerHTML = '<div style="text-align:center;color:var(--ink4);padding:20px">No active sessions</div>'; return; }
+      el.innerHTML = sessions.map(s => `<div style="padding:10px;border-bottom:1px solid var(--border);font-size:.84rem"><div style="color:var(--ink2)">${esc(s.userAgent || 'Unknown device')}</div><div style="font-size:.72rem;color:var(--ink4)">${esc(s.ip || '')} · ${new Date(s.lastActive).toLocaleString()}</div></div>`).join('');
+    }
+  } catch { el.innerHTML = '<div style="text-align:center;color:var(--ink4)">Failed to load</div>'; }
+}
+async function revokeAllSessions() {
+  try {
+    await fetch(`${API}/api/sessions`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    toast('All sessions revoked', 'ok'); closeAllModals();
+  } catch { toast('Failed', 'err'); }
+}
+
+// ── Translate ──────────────────────────────────────────────────────────────
+function showTranslateModal() { document.getElementById('translateModal').classList.add('open'); }
+async function doTranslate() {
+  const text = document.getElementById('translateText').value.trim();
+  const lang = document.getElementById('translateLang').value;
+  if (!text) return;
+  const btn = document.getElementById('translateBtn');
+  const result = document.getElementById('translateResult');
+  btn.disabled = true; btn.textContent = 'Translating...';
+  try {
+    const r = await fetch(`${API}/api/translate`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ text, targetLang: lang })
+    });
+    const data = await r.json();
+    if (data.translated) { result.textContent = data.translated; result.style.display = 'block'; }
+  } catch { toast('Translation failed', 'err'); }
+  finally { btn.disabled = false; btn.textContent = 'Translate'; }
+}
+
+// ── Branching ──────────────────────────────────────────────────────────────
+function showBranchModal() {
+  if (!activeChatId) { toast('Open a chat first', 'err'); return; }
+  const msgs = document.querySelectorAll('.msg');
+  document.getElementById('branchIdx').max = msgs.length - 1;
+  document.getElementById('branchIdx').value = Math.max(0, msgs.length - 2);
+  document.getElementById('branchModal').classList.add('open');
+}
+async function createBranch() {
+  const idx = parseInt(document.getElementById('branchIdx').value);
+  if (isNaN(idx) || idx < 0) return;
+  try {
+    const r = await fetch(`${API}/api/chats/${activeChatId}/branch`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ messageIdx: idx })
+    });
+    const data = await r.json();
+    if (data._id) { toast('Branch created!', 'ok'); closeAllModals(); loadChats(); }
+    else toast(data.error || 'Failed', 'err');
   } catch { toast('Failed', 'err'); }
 }
 </script>

@@ -77,6 +77,8 @@ const UserSchema = new mongoose.Schema({
   customInstructions: { type: String, default: '' },
   preferredModel: { type: String, default: 'claude-sonnet-4' },
   theme: { type: String, default: 'dark' },
+  twoFactorSecret: { type: String, default: '' },
+  twoFactorEnabled: { type: Boolean, default: false },
   lastActive: { type: Date, default: Date.now },
 }, { timestamps: true });
 
@@ -152,6 +154,23 @@ const MemorySchema = new mongoose.Schema({
   messages: [{ role: String, content: String, timestamp: Date }],
 }, { timestamps: true });
 
+const BranchSchema = new mongoose.Schema({
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'TAUser', required: true },
+  chatId:    { type: mongoose.Schema.Types.ObjectId, ref: 'TAChat', required: true },
+  parentMsgIdx: { type: Number, required: true },
+  title:     { type: String, default: '' },
+  messages:  [{ role: String, content: String, timestamp: Date }],
+}, { timestamps: true });
+
+const SessionSchema = new mongoose.Schema({
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'TAUser', required: true },
+  token:     { type: String },
+  ip:        { type: String, default: '' },
+  userAgent: { type: String, default: '' },
+  lastActive:{ type: Date, default: Date.now },
+  expiresAt: { type: Date },
+}, { timestamps: true });
+
 const User    = mongoose.models.TAUser   || mongoose.model('TAUser',   UserSchema);
 const Chat    = mongoose.models.TAChat   || mongoose.model('TAChat',   ChatSchema);
 const Log     = mongoose.models.TALog    || mongoose.model('TALog',    LogSchema);
@@ -161,9 +180,11 @@ const Team    = mongoose.models.TATeam   || mongoose.model('TATeam', TeamSchema)
 const Template = mongoose.models.TATemplate || mongoose.model('TATemplate', TemplateSchema);
 const Folder  = mongoose.models.TAFolder  || mongoose.model('TAFolder', FolderSchema);
 const Memory  = mongoose.models.TAMemory  || mongoose.model('TAMemory', MemorySchema);
+const Branch  = mongoose.models.TABranch  || mongoose.model('TABranch', BranchSchema);
+const Session = mongoose.models.TASession || mongoose.model('TASession', SessionSchema);
 
 // ── In-memory fallback ───────────────────────────────────────────────────────
-const memUsers = [], memChats = [], memLogs = [], memReferrals = [], memPayments = [], memTeams = [], memTemplates = [], memFolders = [], memMemories = [];
+const memUsers = [], memChats = [], memLogs = [], memReferrals = [], memPayments = [], memTeams = [], memTemplates = [], memFolders = [], memMemories = [], memBranches = [], memSessions = [];
 let memIdSeq = 1;
 
 // ── Seed admin ───────────────────────────────────────────────────────────────
@@ -930,6 +951,220 @@ app.post('/api/code/run', authMw, async (req, res) => {
     try { fs.unlinkSync(`${tmpDir}/ta_${id}.*`); } catch {}
     res.json({ output: (e.stderr || e.stdout || e.message || 'Execution failed').slice(0, 50000), language, success: false });
   }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONVERSATION BRANCHING
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/chats/:id/branches', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) return res.json({ branches: await Branch.find({ chatId: req.params.id, userId: req.user.id }).sort({ createdAt: -1 }).lean() });
+    res.json({ branches: memBranches.filter(b => b.chatId == req.params.id && b.userId == req.user.id) });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/chats/:id/branch', authMw, chatLimit, async (req, res) => {
+  const { messageIdx } = req.body;
+  if (messageIdx === undefined) return res.status(400).json({ error: 'messageIdx required' });
+  try {
+    let chat;
+    if (MONGO_URI) chat = await Chat.findOne({ _id: req.params.id, userId: req.user.id });
+    else chat = memChats.find(c => (c._id || c.id) == req.params.id && c.userId == req.user.id);
+    if (!chat) return res.status(404).json({ error: 'Chat not found' });
+    if (messageIdx < 0 || messageIdx >= chat.messages.length) return res.status(400).json({ error: 'Invalid message index' });
+
+    const branchMessages = chat.messages.slice(0, messageIdx + 1);
+    if (MONGO_URI) {
+      const branch = await Branch.create({ userId: req.user.id, chatId: chat._id, parentMsgIdx: messageIdx, title: chat.title + ' (branch)', messages: branchMessages });
+      return res.json(branch);
+    }
+    const branch = { id: memIdSeq++, userId: req.user.id, chatId: chat._id || chat.id, parentMsgIdx: messageIdx, title: chat.title + ' (branch)', messages: branchMessages, createdAt: new Date() };
+    memBranches.push(branch);
+    res.json(branch);
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/branches/:id/chat', authMw, chatLimit, async (req, res) => {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ error: 'Message required' });
+  try {
+    let branch;
+    if (MONGO_URI) branch = await Branch.findOne({ _id: req.params.id, userId: req.user.id });
+    else branch = memBranches.find(b => (b._id || b.id) == req.params.id && b.userId == req.user.id);
+    if (!branch) return res.status(404).json({ error: 'Branch not found' });
+
+    branch.messages.push({ role: 'user', content: message, timestamp: new Date() });
+    // AI response would follow same pattern as /api/chat
+    const aiResponse = `Branch response to: "${message}"\n\nThis is a branch from the conversation.`;
+    branch.messages.push({ role: 'assistant', content: aiResponse, timestamp: new Date() });
+    if (MONGO_URI) await branch.save();
+    res.json({ response: aiResponse, messages: branch.messages });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MULTI-LANGUAGE
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/translate', authMw, async (req, res) => {
+  const { text, targetLang } = req.body;
+  if (!text) return res.status(400).json({ error: 'Text required' });
+  const lang = targetLang || 'en';
+
+  try {
+    // Use AI to translate
+    let translated = '';
+    if (ANTHROPIC_API_KEY) {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', messages: [{ role: 'user', content: `Translate this to ${lang}. Only output the translation, nothing else:\n\n${text}` }], max_tokens: 2048 }),
+      });
+      const data = await r.json();
+      if (r.ok) translated = data.content?.[0]?.text;
+    }
+    if (!translated && OPENAI_API_KEY) {
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+        body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: `Translate this to ${lang}. Only output the translation:\n\n${text}` }], max_tokens: 2048 }),
+      });
+      const data = await r.json();
+      if (r.ok) translated = data.choices?.[0]?.message?.content;
+    }
+    res.json({ translated: translated || text, from: 'auto', to: lang });
+  } catch (e) { res.status(500).json({ error: 'Translation failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SESSION MANAGEMENT & 2FA
+// ══════════════════════════════════════════════════════════════════════════════
+
+const speakeasy = require('speakeasy') || null;
+const QRCode = require('qrcode') || null;
+
+app.get('/api/sessions', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const sessions = await Session.find({ userId: req.user.id }).sort({ lastActive: -1 }).lean();
+      return res.json({ sessions });
+    }
+    res.json({ sessions: memSessions.filter(s => s.userId == req.user.id).sort((a,b) => new Date(b.lastActive) - new Date(a.lastActive)) });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.delete('/api/sessions/:id', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) await Session.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+    else { const i = memSessions.findIndex(s => (s._id || s.id) == req.params.id && s.userId == req.user.id); if (i > -1) memSessions.splice(i, 1); }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.delete('/api/sessions', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) await Session.deleteMany({ userId: req.user.id });
+    else { const i = memSessions.findIndex(s => s.userId == req.user.id); while (i > -1) memSessions.splice(i, 1); }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// 2FA Setup (TOTP)
+app.post('/api/2fa/setup', authMw, async (req, res) => {
+  try {
+    let user;
+    if (MONGO_URI) user = await User.findById(req.user.id);
+    else user = memUsers.find(u => u.id == req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const secret = crypto.randomBytes(20).toString('hex');
+    const otpauth = `otpauth://totp/TribalAI:${user.email}?secret=${secret}&issuer=TribalAI`;
+
+    if (MONGO_URI) await User.findByIdAndUpdate(req.user.id, { twoFactorSecret: secret });
+    else user.twoFactorSecret = secret;
+
+    // Generate QR code as data URL
+    if (QRCode) {
+      const qr = await QRCode.toDataURL(otpauth);
+      return res.json({ secret, qr, otpauth });
+    }
+    res.json({ secret, otpauth, qr: null });
+  } catch (e) { res.status(500).json({ error: 'Setup failed' }); }
+});
+
+app.post('/api/2fa/verify', authMw, async (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Code required' });
+  try {
+    let user;
+    if (MONGO_URI) user = await User.findById(req.user.id);
+    else user = memUsers.find(u => u.id == req.user.id);
+    if (!user?.twoFactorSecret) return res.status(400).json({ error: '2FA not setup' });
+
+    if (speakeasy) {
+      const verified = speakeasy.totp.verify({ secret: user.twoFactorSecret, encoding: 'hex', token: code, window: 1 });
+      if (verified) {
+        if (MONGO_URI) await User.findByIdAndUpdate(req.user.id, { twoFactorEnabled: true });
+        else user.twoFactorEnabled = true;
+        return res.json({ ok: true });
+      }
+    }
+    res.status(400).json({ error: 'Invalid code' });
+  } catch (e) { res.status(500).json({ error: 'Verification failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/analytics', authMw, async (req, res) => {
+  try {
+    let user;
+    if (MONGO_URI) user = await User.findById(req.user.id).select('-password');
+    else user = memUsers.find(u => u.id == req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    let chatCount = 0, totalTokens = 0, modelUsage = {};
+    if (MONGO_URI) {
+      chatCount = await Chat.countDocuments({ userId: req.user.id });
+      const logs = await Log.find({ userId: req.user.id }).lean();
+      logs.forEach(l => { totalTokens += l.tokens || 0; modelUsage[l.model] = (modelUsage[l.model] || 0) + 1; });
+    } else {
+      chatCount = memChats.filter(c => c.userId == req.user.id).length;
+      memLogs.filter(l => l.userId == req.user.id).forEach(l => { totalTokens += l.tokens || 0; modelUsage[l.model] = (modelUsage[l.model] || 0) + 1; });
+    }
+
+    res.json({
+      messagesThisMonth: user.messagesThisMonth || 0,
+      totalMessages: user.totalMessages || 0,
+      chatCount,
+      totalTokens,
+      modelUsage,
+      plan: user.plan,
+      memberSince: user.createdAt,
+      lastActive: user.lastActive,
+    });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// GDPR Export
+app.get('/api/export', authMw, async (req, res) => {
+  try {
+    let userData = {};
+    if (MONGO_URI) {
+      const user = await User.findById(req.user.id).select('-password').lean();
+      const chats = await Chat.find({ userId: req.user.id }).lean();
+      const logs = await Log.find({ userId: req.user.id }).lean();
+      const memories = await Memory.find({ userId: req.user.id }).lean();
+      userData = { user, chats, logs, memories };
+    } else {
+      const user = memUsers.find(u => u.id == req.user.id);
+      const { password, ...safe } = user || {};
+      userData = { user: safe, chats: memChats.filter(c => c.userId == req.user.id), logs: memLogs.filter(l => l.userId == req.user.id), memories: memMemories.filter(m => m.userId == req.user.id) };
+    }
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="tribal-ai-export.json"');
+    res.json(userData);
+  } catch (e) { res.status(500).json({ error: 'Export failed' }); }
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
