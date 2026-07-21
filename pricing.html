@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Pricing</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+nav{height:64px;display:flex;align-items:center;padding:0 6%;background:rgba(15,14,11,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.nav-links{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-links a{font-size:.82rem;color:var(--ink3);text-decoration:none;font-weight:500;padding:.42rem .9rem;border-radius:10px;transition:.15s}
+.nav-links a:hover{background:var(--bg3);color:var(--ink)}
+.btn-nav{background:var(--accent)!important;color:#fff!important;padding:.42rem 1rem!important}
+.btn-nav:hover{background:var(--accent2)!important}
+
+.hero{text-align:center;padding:100px 6% 60px}
+.hero h1{font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,5vw,3.4rem);font-weight:400;line-height:1.08;letter-spacing:-.03em;margin-bottom:16px}
+.hero h1 em{color:var(--accent);font-style:italic}
+.hero p{font-size:1rem;color:var(--ink3);max-width:500px;margin:0 auto;line-height:1.6}
+
+.pricing{padding:40px 6% 80px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap;max-width:1000px;margin:0 auto}
+.price-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;width:300px;position:relative;transition:.2s}
+.price-card:hover{transform:translateY(-4px);box-shadow:0 24px 80px rgba(0,0,0,.4)}
+.price-card.popular{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.popular-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:.72rem;font-weight:700;padding:4px 14px;border-radius:20px}
+.price-card h3{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.price-card .price{font-family:'Instrument Serif',serif;font-size:2.2rem;margin:16px 0 8px}
+.price-card .price span{font-size:.88rem;font-weight:400;color:var(--ink4);font-family:'Geist',sans-serif}
+.price-card .desc{font-size:.84rem;color:var(--ink3);margin-bottom:20px;line-height:1.5}
+.price-features{list-style:none;margin-bottom:24px}
+.price-features li{font-size:.84rem;color:var(--ink3);padding:6px 0;display:flex;align-items:flex-start;gap:8px}
+.price-features li::before{content:"✓";color:var(--green);font-weight:700;flex-shrink:0}
+.price-card .btn{width:100%;text-align:center;display:block;padding:12px;border-radius:var(--r);font:inherit;font-weight:700;font-size:.88rem;cursor:pointer;text-decoration:none;transition:.2s;border:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--ink);border:1.5px solid var(--border2)}
+.btn-outline:hover{background:var(--bg3);border-color:var(--ink3)}
+
+.faq{max-width:640px;margin:0 auto;padding:40px 6% 80px}
+.faq h2{font-family:'Instrument Serif',serif;font-size:2rem;font-weight:400;text-align:center;margin-bottom:40px}
+.faq-item{border-bottom:1px solid var(--border);padding:20px 0}
+.faq-item h4{font-size:.92rem;font-weight:600;margin-bottom:8px;cursor:pointer}
+.faq-item h4:hover{color:var(--accent)}
+.faq-item p{font-size:.84rem;color:var(--ink3);line-height:1.6;display:none}
+.faq-item.open p{display:block}
+
+footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);color:var(--ink4);font-size:.74rem;text-align:center}
+@media(max-width:768px){.pricing{flex-direction:column;align-items:center}.price-card{width:100%;max-width:340px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-links">
+    <a href="/">Chat</a>
+    <a href="login.html">Sign in</a>
+    <a class="btn-nav" href="signup.html">Get Started</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>Simple, honest <em>pricing</em></h1>
+  <p>Start free. Upgrade when you need more. No hidden fees.</p>
+</section>
+
+<section class="pricing">
+  <div class="price-card">
+    <h3>Free</h3>
+    <div class="price">₦0<span>/month</span></div>
+    <div class="desc">Try Tribal AI with no commitment.</div>
+    <ul class="price-features">
+      <li>50 messages per month</li>
+      <li>Claude Sonnet 4 access</li>
+      <li>Chat history</li>
+      <li>Code highlighting</li>
+      <li>Basic responses</li>
+    </ul>
+    <a class="btn btn-outline" href="signup.html">Start Free</a>
+  </div>
+
+  <div class="price-card popular">
+    <div class="popular-badge">Most Popular</div>
+    <h3>Pro</h3>
+    <div class="price">₦2,500<span>/month</span></div>
+    <div class="desc">For power users who need unlimited access.</div>
+    <ul class="price-features">
+      <li>Unlimited messages</li>
+      <li>Claude Sonnet 4 + GPT-4o</li>
+      <li>Priority response speed</li>
+      <li>Advanced code generation</li>
+      <li>File analysis</li>
+      <li>Chat history & search</li>
+      <li>Priority support</li>
+    </ul>
+    <a class="btn btn-primary" href="https://wa.me/2349134521198?text=Hi%20Tribal%20Tech%2C%20I%20want%20to%20subscribe%20to%20Tribal%20AI%20Pro" target="_blank">Subscribe on WhatsApp</a>
+  </div>
+
+  <div class="price-card">
+    <h3>Team</h3>
+    <div class="price">₦15,000<span>/month</span></div>
+    <div class="desc">For teams and organizations.</div>
+    <ul class="price-features">
+      <li>Everything in Pro</li>
+      <li>Up to 10 team members</li>
+      <li>Admin dashboard</li>
+      <li>Usage analytics</li>
+      <li>Custom AI instructions</li>
+      <li>Dedicated support</li>
+      <li>API access</li>
+    </ul>
+    <a class="btn btn-outline" href="https://wa.me/2349134521198?text=Hi%20Tribal%20Tech%2C%20I%20want%20Tribal%20AI%20for%20my%20team" target="_blank">Contact Sales</a>
+  </div>
+</section>
+
+<section class="faq">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <h4>How does the free plan work?</h4>
+    <p>You get 50 messages per month with Claude Sonnet 4. No credit card required. Just sign up and start chatting.</p>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <h4>Can I upgrade or downgrade anytime?</h4>
+    <p>Yes. Contact us on WhatsApp to upgrade or downgrade. Changes take effect immediately.</p>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <h4>What AI models are available?</h4>
+    <p>Free users get Claude Sonnet 4. Pro users get Claude Sonnet 4 + GPT-4o access.</p>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <h4>Is my data private?</h4>
+    <p>Yes. Your chats are encrypted and stored securely. We never share your data with third parties.</p>
+  </div>
+  <div class="faq-item" onclick="this.classList.toggle('open')">
+    <h4>Do you offer refunds?</h4>
+    <p>If you're not satisfied within the first 7 days, contact us for a full refund.</p>
+  </div>
+</section>
+
+<footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+</body>
+</html>

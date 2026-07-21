@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+nav{height:64px;display:flex;align-items:center;padding:0 6%;background:rgba(15,14,11,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:relative;z-index:2}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.nav-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-link{font-size:.82rem;color:var(--ink3);text-decoration:none;font-weight:500;padding:.42rem .9rem;border:1px solid var(--border2);border-radius:10px;transition:.15s}
+.nav-link:hover{background:var(--bg3);color:var(--ink)}
+
+main{flex:1;display:grid;place-items:center;padding:54px 20px 80px;position:relative;z-index:1}
+.card{width:100%;max-width:440px;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.4);overflow:hidden}
+.card-head{text-align:center;padding:36px 32px 8px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.76rem;color:var(--ink3);margin-bottom:16px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(34,197,94,.45)}
+h1{font-family:'Instrument Serif',serif;font-size:1.9rem;font-weight:400;letter-spacing:-.03em;line-height:1.08;margin-bottom:8px}
+h1 em{color:var(--accent);font-style:italic}
+.sub{font-size:.88rem;color:var(--ink3);line-height:1.6}
+.form{padding:24px 32px 32px}
+.err-box{display:none;margin-bottom:16px;padding:.76rem 1rem;border-radius:11px;background:rgba(200,75,9,.08);border:1px solid rgba(200,75,9,.2);color:var(--accent);font-size:.84rem;line-height:1.5}
+.err-box.show{display:block}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:.78rem;font-weight:600;margin-bottom:6px;color:var(--ink3)}
+.fi{width:100%;padding:.82rem 1rem;border:1.5px solid var(--border);border-radius:var(--r);background:var(--bg3);color:var(--ink);font:inherit;font-size:.9rem;outline:none;transition:.15s}
+.fi:focus{background:var(--bg);border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg)}
+.fi::placeholder{color:var(--ink4)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:2px 0 18px}
+.check{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--ink3);cursor:pointer}
+.check input{accent-color:var(--accent)}
+.small{font-size:.8rem;color:var(--accent);text-decoration:none;transition:.15s}
+.small:hover{opacity:.8}
+.btn{width:100%;border:0;border-radius:var(--r);background:var(--accent);color:#fff;padding:.88rem 1.2rem;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;transition:.2s}
+.btn:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.foot{text-align:center;border-top:1px solid var(--border);padding:18px 28px 24px;color:var(--ink3);font-size:.84rem}
+.foot a{color:var(--ink);font-weight:700;text-decoration:none;border-bottom:1px solid var(--border2);transition:.15s}
+.foot a:hover{color:var(--accent)}
+footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);color:var(--ink4);font-size:.74rem;text-align:center}
+@media(max-width:520px){nav{padding:0 5%}.card-head{padding:28px 20px 6px}.form{padding:20px 20px 28px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-right"><a class="nav-link" href="signup.html">Create account</a></div>
+</nav>
+<main>
+  <section class="card">
+    <div class="card-head">
+      <div class="eyebrow"><span class="dot"></span> Welcome back</div>
+      <h1>Sign in to<br><em>Tribal AI.</em></h1>
+      <p class="sub">Chat, code, and create with AI.</p>
+    </div>
+    <form class="form" id="loginForm">
+      <div class="err-box" id="errBox"></div>
+      <div class="fg">
+        <label for="email">Email Address</label>
+        <input class="fi" id="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+      </div>
+      <div class="fg">
+        <label for="password">Password</label>
+        <input class="fi" id="password" type="password" placeholder="Your password" autocomplete="current-password" required>
+      </div>
+      <div class="row">
+        <label class="check"><input id="remember" type="checkbox" checked> Remember me</label>
+        <a class="small" href="signup.html">Create account</a>
+      </div>
+      <button id="submitBtn" type="submit">Sign in</button>
+    </form>
+    <div class="foot">New here? <a href="signup.html">Create an account</a></div>
+  </section>
+</main>
+<footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+<script>
+if (localStorage.getItem('ta_token') || sessionStorage.getItem('ta_token')) window.location.href = '/';
+const form = document.getElementById('loginForm');
+const errBox = document.getElementById('errBox');
+const btn = document.getElementById('submitBtn');
+function showErr(msg){ errBox.textContent = msg; errBox.classList.add('show'); }
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  errBox.classList.remove('show');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: document.getElementById('email').value.trim(), password: document.getElementById('password').value })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+    const remember = document.getElementById('remember').checked;
+    const store = remember ? localStorage : sessionStorage;
+    store.setItem('ta_token', data.token);
+    store.setItem('ta_user', JSON.stringify(data.user));
+    window.location.href = '/';
+  } catch (err) {
+    showErr(err.message || 'Login failed');
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+});
+</script>
+</body>
+</html>
