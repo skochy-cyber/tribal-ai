@@ -2,11 +2,10 @@
   "name": "tribal-ai",
   "version": "19.3.0",
   "description": "Tribal AI — Chat, Code, Create",
-  "main": "backend/server.js",
+  "main": "ai-saas/backend/server.js",
   "scripts": {
-    "start": "node backend/server.js",
-    "dev": "node backend/server.js",
-    "build": "echo 'Build complete'"
+    "start": "node ai-saas/backend/server.js",
+    "build": "cd ai-saas && npm install"
   },
   "dependencies": {
     "express": "^4.21.0",
@@ -22,7 +21,5 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  },
-  "author": "Obasanjo Samuel",
-  "license": "MIT"
+  }
 }
