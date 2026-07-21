@@ -282,7 +282,7 @@ app.post('/api/login', async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Login failed' }); }
 });
 
-app.get('/api/me', authMw, async (req, res) => {
+app.get('/api/me', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) {
       const u = await User.findById(req.user.id).select('-password');
@@ -296,7 +296,7 @@ app.get('/api/me', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.put('/api/me', authMw, async (req, res) => {
+app.put('/api/me', requireAuth, async (req, res) => {
   const { name, customInstructions, theme } = req.body;
   try {
     if (MONGO_URI) {
@@ -317,7 +317,7 @@ app.put('/api/me', authMw, async (req, res) => {
 // CHAT ROUTES
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/chats', authMw, async (req, res) => {
+app.get('/api/chats', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) {
       const chats = await Chat.find({ userId: req.user.id }).select('title model shared shareId createdAt updatedAt').sort({ updatedAt: -1 }).limit(50).lean();
@@ -328,7 +328,7 @@ app.get('/api/chats', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.get('/api/chats/:id', authMw, async (req, res) => {
+app.get('/api/chats/:id', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) {
       const chat = await Chat.findOne({ _id: req.params.id, userId: req.user.id }).lean();
@@ -341,7 +341,7 @@ app.get('/api/chats/:id', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.post('/api/chats', authMw, async (req, res) => {
+app.post('/api/chats', requireAuth, async (req, res) => {
   const { title, model } = req.body;
   try {
     if (MONGO_URI) {
@@ -354,7 +354,7 @@ app.post('/api/chats', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.delete('/api/chats/:id', authMw, async (req, res) => {
+app.delete('/api/chats/:id', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) await Chat.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     else { const i = memChats.findIndex(c => (c._id || c.id) == req.params.id && c.userId == req.user.id); if (i > -1) memChats.splice(i, 1); }
@@ -363,7 +363,7 @@ app.delete('/api/chats/:id', authMw, async (req, res) => {
 });
 
 // ── Send message + get AI response ──────────────────────────────────────────
-app.post('/api/chat', authMw, chatLimit, async (req, res) => {
+app.post('/api/chat', requireAuth, chatLimit, async (req, res) => {
   const { chatId, message, model: reqModel } = req.body;
   if (!message) return res.status(400).json({ error: 'Message required' });
 
@@ -467,7 +467,7 @@ app.post('/api/chat', authMw, chatLimit, async (req, res) => {
 // FILE UPLOAD (Base64 — client encodes, server forwards to AI)
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/upload', authMw, async (req, res) => {
+app.post('/api/upload', requireAuth, async (req, res) => {
   const { chatId, message, files } = req.body; // files: [{name, type, b64}]
   if (!message && (!files || !files.length)) return res.status(400).json({ error: 'Message or files required' });
   try {
@@ -507,7 +507,7 @@ app.post('/api/upload', authMw, async (req, res) => {
 // CHAT SHARING
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/chats/:id/share', authMw, async (req, res) => {
+app.post('/api/chats/:id/share', requireAuth, async (req, res) => {
   try {
     let chat;
     if (MONGO_URI) chat = await Chat.findOne({ _id: req.params.id, userId: req.user.id });
@@ -536,7 +536,7 @@ app.get('/api/shared/:shareId', async (req, res) => {
 // EXPORT CHAT
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/chats/:id/export', authMw, async (req, res) => {
+app.get('/api/chats/:id/export', requireAuth, async (req, res) => {
   const { format } = req.query; // txt or json
   try {
     let chat;
@@ -565,7 +565,7 @@ app.get('/api/chats/:id/export', authMw, async (req, res) => {
 // MODELS LIST
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/models', authMw, async (req, res) => {
+app.get('/api/models', requireAuth, async (req, res) => {
   let user;
   if (MONGO_URI) user = await User.findById(req.user.id).select('plan');
   else user = memUsers.find(u => u.id == req.user.id);
@@ -574,7 +574,7 @@ app.get('/api/models', authMw, async (req, res) => {
   res.json({ models, current: user?.preferredModel || 'claude-sonnet-4' });
 });
 
-app.put('/api/models', authMw, async (req, res) => {
+app.put('/api/models', requireAuth, async (req, res) => {
   const { model } = req.body;
   if (!model) return res.status(400).json({ error: 'Model required' });
   try {
@@ -588,7 +588,7 @@ app.put('/api/models', authMw, async (req, res) => {
 // WEB SEARCH
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/search', authMw, async (req, res) => {
+app.post('/api/search', requireAuth, async (req, res) => {
   const { query } = req.body;
   if (!query) return res.status(400).json({ error: 'Query required' });
   try {
@@ -634,7 +634,7 @@ const DEFAULT_TEMPLATES = [
   { title: 'Interview Prep', description: 'Prepare for interviews', prompt: 'Generate interview questions and answers for: ', icon: '🎯', category: 'education' },
 ];
 
-app.get('/api/templates', authMw, async (req, res) => {
+app.get('/api/templates', requireAuth, async (req, res) => {
   try {
     let custom = [];
     if (MONGO_URI) custom = await Template.find({ $or: [{ userId: null }, { userId: req.user.id }] }).sort({ uses: -1 }).lean();
@@ -643,7 +643,7 @@ app.get('/api/templates', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.post('/api/templates', authMw, async (req, res) => {
+app.post('/api/templates', requireAuth, async (req, res) => {
   const { title, description, prompt, category, icon } = req.body;
   if (!title || !prompt) return res.status(400).json({ error: 'Title and prompt required' });
   try {
@@ -694,7 +694,7 @@ app.post('/api/auth/google', async (req, res) => {
 // TEAM ACCOUNTS
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/teams', authMw, async (req, res) => {
+app.post('/api/teams', requireAuth, async (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: 'Team name required' });
   try {
@@ -710,7 +710,7 @@ app.post('/api/teams', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.post('/api/teams/join', authMw, async (req, res) => {
+app.post('/api/teams/join', requireAuth, async (req, res) => {
   const { inviteCode } = req.body;
   if (!inviteCode) return res.status(400).json({ error: 'Invite code required' });
   try {
@@ -732,7 +732,7 @@ app.post('/api/teams/join', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.get('/api/teams/my', authMw, async (req, res) => {
+app.get('/api/teams/my', requireAuth, async (req, res) => {
   try {
     let user;
     if (MONGO_URI) user = await User.findById(req.user.id).select('teamId teamRole');
@@ -749,14 +749,14 @@ app.get('/api/teams/my', authMw, async (req, res) => {
 // CHAT FOLDERS
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/folders', authMw, async (req, res) => {
+app.get('/api/folders', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) return res.json({ folders: await Folder.find({ userId: req.user.id }).sort({ createdAt: -1 }).lean() });
     res.json({ folders: memFolders.filter(f => f.userId == req.user.id) });
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.post('/api/folders', authMw, async (req, res) => {
+app.post('/api/folders', requireAuth, async (req, res) => {
   const { name, color, icon } = req.body;
   if (!name) return res.status(400).json({ error: 'Folder name required' });
   try {
@@ -766,7 +766,7 @@ app.post('/api/folders', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.delete('/api/folders/:id', authMw, async (req, res) => {
+app.delete('/api/folders/:id', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) await Folder.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     else { const i = memFolders.findIndex(f => f.id == req.params.id && f.userId == req.user.id); if (i > -1) memFolders.splice(i, 1); }
@@ -774,7 +774,7 @@ app.delete('/api/folders/:id', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.put('/api/chats/:id/folder', authMw, async (req, res) => {
+app.put('/api/chats/:id/folder', requireAuth, async (req, res) => {
   const { folderId } = req.body;
   try {
     if (MONGO_URI) await Chat.findOneAndUpdate({ _id: req.params.id, userId: req.user.id }, { folderId: folderId || null });
@@ -787,7 +787,7 @@ app.put('/api/chats/:id/folder', authMw, async (req, res) => {
 // STREAMING RESPONSES (SSE)
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/chat/stream', authMw, chatLimit, async (req, res) => {
+app.post('/api/chat/stream', requireAuth, chatLimit, async (req, res) => {
   const { chatId, message, model: reqModel } = req.body;
   if (!message) return res.status(400).json({ error: 'Message required' });
 
@@ -917,7 +917,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 
-app.post('/api/code/run', authMw, async (req, res) => {
+app.post('/api/code/run', requireAuth, async (req, res) => {
   const { code, language } = req.body;
   if (!code) return res.status(400).json({ error: 'Code required' });
 
@@ -962,14 +962,14 @@ app.post('/api/code/run', authMw, async (req, res) => {
 // CONVERSATION BRANCHING
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/chats/:id/branches', authMw, async (req, res) => {
+app.get('/api/chats/:id/branches', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) return res.json({ branches: await Branch.find({ chatId: req.params.id, userId: req.user.id }).sort({ createdAt: -1 }).lean() });
     res.json({ branches: memBranches.filter(b => b.chatId == req.params.id && b.userId == req.user.id) });
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.post('/api/chats/:id/branch', authMw, chatLimit, async (req, res) => {
+app.post('/api/chats/:id/branch', requireAuth, chatLimit, async (req, res) => {
   const { messageIdx } = req.body;
   if (messageIdx === undefined) return res.status(400).json({ error: 'messageIdx required' });
   try {
@@ -990,7 +990,7 @@ app.post('/api/chats/:id/branch', authMw, chatLimit, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.post('/api/branches/:id/chat', authMw, chatLimit, async (req, res) => {
+app.post('/api/branches/:id/chat', requireAuth, chatLimit, async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: 'Message required' });
   try {
@@ -1012,7 +1012,7 @@ app.post('/api/branches/:id/chat', authMw, chatLimit, async (req, res) => {
 // MULTI-LANGUAGE
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/translate', authMw, async (req, res) => {
+app.post('/api/translate', requireAuth, async (req, res) => {
   const { text, targetLang } = req.body;
   if (!text) return res.status(400).json({ error: 'Text required' });
   const lang = targetLang || 'en';
@@ -1047,7 +1047,7 @@ app.post('/api/translate', authMw, async (req, res) => {
 const speakeasy = require('speakeasy') || null;
 const QRCode = require('qrcode') || null;
 
-app.get('/api/sessions', authMw, async (req, res) => {
+app.get('/api/sessions', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) {
       const sessions = await Session.find({ userId: req.user.id }).sort({ lastActive: -1 }).lean();
@@ -1057,7 +1057,7 @@ app.get('/api/sessions', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.delete('/api/sessions/:id', authMw, async (req, res) => {
+app.delete('/api/sessions/:id', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) await Session.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     else { const i = memSessions.findIndex(s => (s._id || s.id) == req.params.id && s.userId == req.user.id); if (i > -1) memSessions.splice(i, 1); }
@@ -1065,7 +1065,7 @@ app.delete('/api/sessions/:id', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.delete('/api/sessions', authMw, async (req, res) => {
+app.delete('/api/sessions', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) await Session.deleteMany({ userId: req.user.id });
     else { const i = memSessions.findIndex(s => s.userId == req.user.id); while (i > -1) memSessions.splice(i, 1); }
@@ -1074,7 +1074,7 @@ app.delete('/api/sessions', authMw, async (req, res) => {
 });
 
 // 2FA Setup (TOTP)
-app.post('/api/2fa/setup', authMw, async (req, res) => {
+app.post('/api/2fa/setup', requireAuth, async (req, res) => {
   try {
     let user;
     if (MONGO_URI) user = await User.findById(req.user.id);
@@ -1096,7 +1096,7 @@ app.post('/api/2fa/setup', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Setup failed' }); }
 });
 
-app.post('/api/2fa/verify', authMw, async (req, res) => {
+app.post('/api/2fa/verify', requireAuth, async (req, res) => {
   const { code } = req.body;
   if (!code) return res.status(400).json({ error: 'Code required' });
   try {
@@ -1121,7 +1121,7 @@ app.post('/api/2fa/verify', authMw, async (req, res) => {
 // ANALYTICS
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/analytics', authMw, async (req, res) => {
+app.get('/api/analytics', requireAuth, async (req, res) => {
   try {
     let user;
     if (MONGO_URI) user = await User.findById(req.user.id).select('-password');
@@ -1152,7 +1152,7 @@ app.get('/api/analytics', authMw, async (req, res) => {
 });
 
 // GDPR Export
-app.get('/api/export', authMw, async (req, res) => {
+app.get('/api/export', requireAuth, async (req, res) => {
   try {
     let userData = {};
     if (MONGO_URI) {
@@ -1176,14 +1176,14 @@ app.get('/api/export', authMw, async (req, res) => {
 // CONVERSATION MEMORY
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/memory', authMw, async (req, res) => {
+app.get('/api/memory', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) return res.json({ memories: await Memory.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(20).lean() });
     res.json({ memories: memMemories.filter(m => m.userId == req.user.id).slice(0, 20) });
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.post('/api/memory', authMw, async (req, res) => {
+app.post('/api/memory', requireAuth, async (req, res) => {
   const { chatId, summary, keywords } = req.body;
   try {
     if (MONGO_URI) {
@@ -1195,7 +1195,7 @@ app.post('/api/memory', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.delete('/api/memory/:id', authMw, async (req, res) => {
+app.delete('/api/memory/:id', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) await Memory.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     else { const i = memMemories.findIndex(m => m.id == req.params.id && m.userId == req.user.id); if (i > -1) memMemories.splice(i, 1); }
@@ -1207,7 +1207,7 @@ app.delete('/api/memory/:id', authMw, async (req, res) => {
 // IMAGE GENERATION
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/image/generate', authMw, async (req, res) => {
+app.post('/api/image/generate', requireAuth, async (req, res) => {
   const { prompt, size, model } = req.body;
   if (!prompt) return res.status(400).json({ error: 'Prompt required' });
 
@@ -1241,7 +1241,7 @@ app.post('/api/image/generate', authMw, async (req, res) => {
 // TEXT-TO-SPEECH
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/tts', authMw, async (req, res) => {
+app.post('/api/tts', requireAuth, async (req, res) => {
   const { text, voice } = req.body;
   if (!text) return res.status(400).json({ error: 'Text required' });
 
@@ -1268,7 +1268,7 @@ app.post('/api/tts', authMw, async (req, res) => {
 // REFERRAL SYSTEM
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/referrals', authMw, async (req, res) => {
+app.get('/api/referrals', requireAuth, async (req, res) => {
   try {
     let user;
     if (MONGO_URI) user = await User.findById(req.user.id).select('referralCode referralCount bonusMessages');
@@ -1287,7 +1287,7 @@ app.get('/api/referrals', authMw, async (req, res) => {
 // PAYMENT (Paystack)
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/payments/initialize', authMw, async (req, res) => {
+app.post('/api/payments/initialize', requireAuth, async (req, res) => {
   try {
     let user;
     if (MONGO_URI) user = await User.findById(req.user.id);
@@ -1319,7 +1319,7 @@ app.post('/api/payments/initialize', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Payment init failed' }); }
 });
 
-app.post('/api/payments/verify', authMw, async (req, res) => {
+app.post('/api/payments/verify', requireAuth, async (req, res) => {
   const { reference } = req.body;
   if (!reference) return res.status(400).json({ error: 'Reference required' });
   try {
@@ -1412,7 +1412,7 @@ app.post('/api/admin/login', async (req, res) => {
   res.json({ token });
 });
 
-app.get('/api/admin/stats', authMw, adminMw, async (req, res) => {
+app.get('/api/admin/stats', requireAuth, adminMw, async (req, res) => {
   try {
     if (MONGO_URI) {
       const [users, logs, payments] = await Promise.all([User.countDocuments(), Log.countDocuments(), Payment.countDocuments({ status: 'success' })]);
@@ -1423,14 +1423,14 @@ app.get('/api/admin/stats', authMw, adminMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Stats failed' }); }
 });
 
-app.get('/api/admin/users', authMw, adminMw, async (req, res) => {
+app.get('/api/admin/users', requireAuth, adminMw, async (req, res) => {
   try {
     if (MONGO_URI) return res.json({ users: await User.find().select('-password').sort({ createdAt: -1 }).lean() });
     res.json({ users: memUsers.map(({ password, ...u }) => u) });
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.put('/api/admin/users/:id/plan', authMw, adminMw, async (req, res) => {
+app.put('/api/admin/users/:id/plan', requireAuth, adminMw, async (req, res) => {
   const { plan } = req.body;
   if (!['free','pro'].includes(plan)) return res.status(400).json({ error: 'Invalid plan' });
   try {
@@ -1443,7 +1443,7 @@ app.put('/api/admin/users/:id/plan', authMw, adminMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // ADMIN: DELETE USER
 // ══════════════════════════════════════════════════════════════════════════════
-app.delete('/api/admin/users/:id', authMw, adminMw, async (req, res) => {
+app.delete('/api/admin/users/:id', requireAuth, adminMw, async (req, res) => {
   try {
     if (MONGO_URI) await User.findByIdAndDelete(req.params.id);
     else { const i = memUsers.findIndex(u => u.id == req.params.id); if (i >= 0) memUsers.splice(i, 1); }
@@ -1454,7 +1454,7 @@ app.delete('/api/admin/users/:id', authMw, adminMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // ADMIN: BAN/UNBAN USER
 // ══════════════════════════════════════════════════════════════════════════════
-app.put('/api/admin/users/:id/ban', authMw, adminMw, async (req, res) => {
+app.put('/api/admin/users/:id/ban', requireAuth, adminMw, async (req, res) => {
   try {
     const banned = req.body.banned !== false;
     if (MONGO_URI) await User.findByIdAndUpdate(req.params.id, { banned });
@@ -1466,7 +1466,7 @@ app.put('/api/admin/users/:id/ban', authMw, adminMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // ADMIN: CHAT LISTING
 // ══════════════════════════════════════════════════════════════════════════════
-app.get('/api/admin/chats', authMw, adminMw, async (req, res) => {
+app.get('/api/admin/chats', requireAuth, adminMw, async (req, res) => {
   try {
     if (MONGO_URI) {
       const chats = await Chat.find().select('title userId model createdAt messages').sort({ createdAt: -1 }).limit(200).lean();
@@ -1479,7 +1479,7 @@ app.get('/api/admin/chats', authMw, adminMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // ADMIN: DELETE CHAT
 // ══════════════════════════════════════════════════════════════════════════════
-app.delete('/api/admin/chats/:id', authMw, adminMw, async (req, res) => {
+app.delete('/api/admin/chats/:id', requireAuth, adminMw, async (req, res) => {
   try {
     if (MONGO_URI) await Chat.findByIdAndDelete(req.params.id);
     else { const i = memChats.findIndex(c => c.id == req.params.id); if (i >= 0) memChats.splice(i, 1); }
@@ -1490,7 +1490,7 @@ app.delete('/api/admin/chats/:id', authMw, adminMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // ADMIN: PAYMENT LISTING
 // ══════════════════════════════════════════════════════════════════════════════
-app.get('/api/admin/payments', authMw, adminMw, async (req, res) => {
+app.get('/api/admin/payments', requireAuth, adminMw, async (req, res) => {
   try {
     if (MONGO_URI) {
       const payments = await Payment.find().sort({ createdAt: -1 }).limit(200).lean();
@@ -1514,11 +1514,11 @@ let systemSettings = {
   announcement: ''
 };
 
-app.get('/api/admin/settings', authMw, adminMw, (req, res) => {
+app.get('/api/admin/settings', requireAuth, adminMw, (req, res) => {
   res.json(systemSettings);
 });
 
-app.put('/api/admin/settings', authMw, adminMw, (req, res) => {
+app.put('/api/admin/settings', requireAuth, adminMw, (req, res) => {
   Object.assign(systemSettings, req.body);
   res.json({ ok: true, settings: systemSettings });
 });
@@ -1526,7 +1526,7 @@ app.put('/api/admin/settings', authMw, adminMw, (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // ADMIN: ANALYTICS
 // ══════════════════════════════════════════════════════════════════════════════
-app.get('/api/admin/analytics', authMw, adminMw, async (req, res) => {
+app.get('/api/admin/analytics', requireAuth, adminMw, async (req, res) => {
   try {
     if (MONGO_URI) {
       const [totalUsers, totalChats, totalMessages, totalPayments] = await Promise.all([
@@ -1549,7 +1549,7 @@ app.get('/api/admin/analytics', authMw, adminMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // ADMIN: REVENUE
 // ══════════════════════════════════════════════════════════════════════════════
-app.get('/api/admin/revenue', authMw, adminMw, async (req, res) => {
+app.get('/api/admin/revenue', requireAuth, adminMw, async (req, res) => {
   try {
     if (MONGO_URI) {
       const revenue = await Payment.aggregate([
@@ -1577,11 +1577,11 @@ let aiModels = [
   { id: 'dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', tier: 'pro', enabled: true }
 ];
 
-app.get('/api/admin/models', authMw, adminMw, (req, res) => {
+app.get('/api/admin/models', requireAuth, adminMw, (req, res) => {
   res.json({ models: aiModels });
 });
 
-app.put('/api/admin/models/:id', authMw, adminMw, (req, res) => {
+app.put('/api/admin/models/:id', requireAuth, adminMw, (req, res) => {
   const m = aiModels.find(m => m.id === req.params.id);
   if (!m) return res.status(404).json({ error: 'Model not found' });
   Object.assign(m, req.body);
@@ -1593,18 +1593,18 @@ app.put('/api/admin/models/:id', authMw, adminMw, (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 let announcements = [];
 
-app.get('/api/admin/announcements', authMw, adminMw, (req, res) => {
+app.get('/api/admin/announcements', requireAuth, adminMw, (req, res) => {
   res.json({ announcements });
 });
 
-app.post('/api/admin/announcements', authMw, adminMw, (req, res) => {
+app.post('/api/admin/announcements', requireAuth, adminMw, (req, res) => {
   const { title, message, active } = req.body;
   const ann = { id: Date.now().toString(), title, message, active: active !== false, createdAt: new Date().toISOString() };
   announcements.unshift(ann);
   res.json({ ok: true, announcement: ann });
 });
 
-app.delete('/api/admin/announcements/:id', authMw, adminMw, (req, res) => {
+app.delete('/api/admin/announcements/:id', requireAuth, adminMw, (req, res) => {
   announcements = announcements.filter(a => a.id !== req.params.id);
   res.json({ ok: true });
 });
@@ -1612,18 +1612,18 @@ app.delete('/api/admin/announcements/:id', authMw, adminMw, (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // ADMIN: BACKUPS
 // ══════════════════════════════════════════════════════════════════════════════
-app.get('/api/admin/backups', authMw, adminMw, (req, res) => {
+app.get('/api/admin/backups', requireAuth, adminMw, (req, res) => {
   res.json({ backups: [] });
 });
 
-app.post('/api/admin/backups', authMw, adminMw, (req, res) => {
+app.post('/api/admin/backups', requireAuth, adminMw, (req, res) => {
   res.json({ ok: true, message: 'Backup initiated (simulated)' });
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SMART SUGGESTIONS
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/suggestions', authMw, async (req, res) => {
+app.post('/api/suggestions', requireAuth, async (req, res) => {
   const { message, response } = req.body;
   // Generate contextual follow-up suggestions
   const suggestions = [];
@@ -1647,7 +1647,7 @@ app.post('/api/suggestions', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // WEB SEARCH
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/web-search', authMw, async (req, res) => {
+app.post('/api/web-search', requireAuth, async (req, res) => {
   const { query } = req.body;
   if (!query) return res.status(400).json({ error: 'Query required' });
   try {
@@ -1711,7 +1711,7 @@ app.get('/api/prompts', (req, res) => {
   res.json({ prompts });
 });
 
-app.post('/api/prompts/:id/upvote', authMw, (req, res) => {
+app.post('/api/prompts/:id/upvote', requireAuth, (req, res) => {
   const p = communityPrompts.find(p => p.id === req.params.id);
   if (!p) return res.status(404).json({ error: 'Not found' });
   p.upvotes++;
@@ -1723,7 +1723,7 @@ app.post('/api/prompts/:id/upvote', authMw, (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 let userMemory = {};
 
-app.get('/api/memory', authMw, async (req, res) => {
+app.get('/api/memory', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) {
       const mem = await Memory.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(50).lean();
@@ -1734,7 +1734,7 @@ app.get('/api/memory', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.post('/api/memory', authMw, async (req, res) => {
+app.post('/api/memory', requireAuth, async (req, res) => {
   const { text, category } = req.body;
   if (!text) return res.status(400).json({ error: 'Text required' });
   try {
@@ -1749,7 +1749,7 @@ app.post('/api/memory', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.delete('/api/memory/:id', authMw, async (req, res) => {
+app.delete('/api/memory/:id', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) await Memory.findByIdAndDelete(req.params.id);
     else {
@@ -1780,7 +1780,7 @@ const achievementDefs = [
   { id: 'pro_user', name: 'Pro Member', icon: '⭐', desc: 'Upgraded to Pro', condition: (stats) => stats.isPro }
 ];
 
-app.get('/api/achievements', authMw, async (req, res) => {
+app.get('/api/achievements', requireAuth, async (req, res) => {
   try {
     let stats = { messages: 0, codeRuns: 0, modelsUsed: 0, imagesGenerated: 0, streak: 0, nightChats: 0, earlyChats: 0, exports: 0, isPro: false };
     if (MONGO_URI) {
@@ -1804,7 +1804,7 @@ app.get('/api/achievements', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 let sharedChats = {};
 
-app.post('/api/chats/:id/share', authMw, async (req, res) => {
+app.post('/api/chats/:id/share', requireAuth, async (req, res) => {
   try {
     const shareId = Math.random().toString(36).slice(2, 10);
     sharedChats[shareId] = { chatId: req.params.id, userId: req.user.id, createdAt: new Date().toISOString() };
@@ -1870,7 +1870,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // VOICE INPUT (Whisper transcription)
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/voice', authMw, async (req, res) => {
+app.post('/api/voice', requireAuth, async (req, res) => {
   // In production, this would use OpenAI Whisper API
   // For now, return a placeholder
   res.json({ text: '[Voice input — connect OpenAI Whisper API for real transcription]' });
@@ -1879,7 +1879,7 @@ app.post('/api/voice', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // CHAT IMPORT
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/import', authMw, async (req, res) => {
+app.post('/api/import', requireAuth, async (req, res) => {
   const { messages, title, source } = req.body;
   if (!messages || !Array.isArray(messages)) return res.status(400).json({ error: 'Messages array required' });
   try {
@@ -1905,7 +1905,7 @@ app.post('/api/import', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 let customInstructions = {};
 
-app.get('/api/instructions', authMw, async (req, res) => {
+app.get('/api/instructions', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) {
       const user = await User.findById(req.user.id).select('customInstructions').lean();
@@ -1915,7 +1915,7 @@ app.get('/api/instructions', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.put('/api/instructions', authMw, async (req, res) => {
+app.put('/api/instructions', requireAuth, async (req, res) => {
   const { instructions } = req.body;
   try {
     if (MONGO_URI) {
@@ -1930,7 +1930,7 @@ app.put('/api/instructions', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // USER STATISTICS
 // ══════════════════════════════════════════════════════════════════════════════
-app.get('/api/stats', authMw, async (req, res) => {
+app.get('/api/stats', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) {
       const [chatCount, messageCount] = await Promise.all([
@@ -1949,7 +1949,7 @@ app.get('/api/stats', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // COMPARISON MODE — Send same prompt to 2 models
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/compare', authMw, async (req, res) => {
+app.post('/api/compare', requireAuth, async (req, res) => {
   const { message, modelA, modelB } = req.body;
   if (!message) return res.status(400).json({ error: 'Message required' });
   const mA = modelA || 'claude-sonnet-4';
@@ -1966,7 +1966,7 @@ app.post('/api/compare', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // EMBED WIDGET — Generate embed code
 // ══════════════════════════════════════════════════════════════════════════════
-app.get('/api/embed', authMw, (req, res) => {
+app.get('/api/embed', requireAuth, (req, res) => {
   const embedCode = `<iframe src="${req.protocol}://${req.get('host')}/playground.html?embed=1" width="400" height="600" frameborder="0" style="border-radius:12px;border:1px solid #2e2d29"></iframe>`;
   res.json({ embedCode, widgetUrl: `${req.protocol}://${req.get('host')}/playground.html?embed=1` });
 });
@@ -1976,12 +1976,12 @@ app.get('/api/embed', authMw, (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 let webhooks = [];
 
-app.get('/api/webhooks', authMw, (req, res) => {
+app.get('/api/webhooks', requireAuth, (req, res) => {
   const userHooks = webhooks.filter(w => w.userId == req.user.id);
   res.json({ webhooks: userHooks });
 });
 
-app.post('/api/webhooks', authMw, (req, res) => {
+app.post('/api/webhooks', requireAuth, (req, res) => {
   const { url, events } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
   const hook = { id: Date.now().toString(), userId: req.user.id, url, events: events || ['chat.created', 'payment.success'], active: true, createdAt: new Date().toISOString() };
@@ -1989,7 +1989,7 @@ app.post('/api/webhooks', authMw, (req, res) => {
   res.json({ ok: true, webhook: hook });
 });
 
-app.delete('/api/webhooks/:id', authMw, (req, res) => {
+app.delete('/api/webhooks/:id', requireAuth, (req, res) => {
   webhooks = webhooks.filter(w => w.id !== req.params.id);
   res.json({ ok: true });
 });
@@ -2012,7 +2012,7 @@ app.get('/api/leaderboard', async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 let bookmarks = {};
 
-app.post('/api/bookmarks', authMw, (req, res) => {
+app.post('/api/bookmarks', requireAuth, (req, res) => {
   const { chatId, messageId, content } = req.body;
   if (!chatId || !messageId) return res.status(400).json({ error: 'chatId and messageId required' });
   const uid = req.user.id;
@@ -2022,11 +2022,11 @@ app.post('/api/bookmarks', authMw, (req, res) => {
   res.json({ ok: true, bookmark: bm });
 });
 
-app.get('/api/bookmarks', authMw, (req, res) => {
+app.get('/api/bookmarks', requireAuth, (req, res) => {
   res.json({ bookmarks: bookmarks[req.user.id] || [] });
 });
 
-app.delete('/api/bookmarks/:id', authMw, (req, res) => {
+app.delete('/api/bookmarks/:id', requireAuth, (req, res) => {
   const uid = req.user.id;
   bookmarks[uid] = (bookmarks[uid] || []).filter(b => b.id !== req.params.id);
   res.json({ ok: true });
@@ -2054,7 +2054,7 @@ app.get('/api/themes', (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 let userStreaks = {};
 
-app.get('/api/streak', authMw, (req, res) => {
+app.get('/api/streak', requireAuth, (req, res) => {
   const uid = req.user.id;
   const today = new Date().toISOString().split('T')[0];
   if (!userStreaks[uid]) userStreaks[uid] = { count: 0, lastDate: null };
@@ -2076,12 +2076,12 @@ app.get('/api/streak', authMw, (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 let notifPrefs = {};
 
-app.get('/api/notifications', authMw, (req, res) => {
+app.get('/api/notifications', requireAuth, (req, res) => {
   const prefs = notifPrefs[req.user.id] || { email: true, push: false, marketing: false };
   res.json({ preferences: prefs });
 });
 
-app.put('/api/notifications', authMw, (req, res) => {
+app.put('/api/notifications', requireAuth, (req, res) => {
   notifPrefs[req.user.id] = { ...notifPrefs[req.user.id], ...req.body };
   res.json({ ok: true, preferences: notifPrefs[req.user.id] });
 });
@@ -2089,13 +2089,13 @@ app.put('/api/notifications', authMw, (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // TWO-FACTOR AUTH SETUP (TOTP)
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/2fa/setup', authMw, async (req, res) => {
+app.post('/api/2fa/setup', requireAuth, async (req, res) => {
   const secret = crypto.randomBytes(20).toString('hex');
   // In production, use speakeasy or otplib for real TOTP
   res.json({ ok: true, secret, qrUrl: `otpauth://totp/TribalAI:${req.user.email}?secret=${secret}&issuer=TribalAI` });
 });
 
-app.post('/api/2fa/verify', authMw, async (req, res) => {
+app.post('/api/2fa/verify', requireAuth, async (req, res) => {
   const { code, secret } = req.body;
   // In production, verify TOTP code
   if (MONGO_URI) {
@@ -2107,7 +2107,7 @@ app.post('/api/2fa/verify', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // CHAT PIN/UNPIN (already exists but adding unpin)
 // ══════════════════════════════════════════════════════════════════════════════
-app.put('/api/chats/:id/unpin', authMw, async (req, res) => {
+app.put('/api/chats/:id/unpin', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) await Chat.findByIdAndUpdate(req.params.id, { pinned: false });
     else { const c = memChats.find(c => c.id == req.params.id); if (c) c.pinned = false; }
@@ -2118,7 +2118,7 @@ app.put('/api/chats/:id/unpin', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // BULK ACTIONS
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/chats/bulk-delete', authMw, async (req, res) => {
+app.post('/api/chats/bulk-delete', requireAuth, async (req, res) => {
   const { chatIds } = req.body;
   if (!chatIds || !Array.isArray(chatIds)) return res.status(400).json({ error: 'chatIds array required' });
   try {
@@ -2128,7 +2128,7 @@ app.post('/api/chats/bulk-delete', authMw, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-app.post('/api/chats/bulk-archive', authMw, async (req, res) => {
+app.post('/api/chats/bulk-archive', requireAuth, async (req, res) => {
   const { chatIds, archived } = req.body;
   if (!chatIds || !Array.isArray(chatIds)) return res.status(400).json({ error: 'chatIds array required' });
   try {
@@ -2141,7 +2141,7 @@ app.post('/api/chats/bulk-archive', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // CODE EXECUTION SANDBOX
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/execute', authMw, async (req, res) => {
+app.post('/api/execute', requireAuth, async (req, res) => {
   const { code, language } = req.body;
   if (!code) return res.status(400).json({ error: 'Code required' });
   const lang = language || 'javascript';
@@ -2164,7 +2164,7 @@ app.post('/api/execute', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // AI IMAGE GENERATION
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/image/generate', authMw, async (req, res) => {
+app.post('/api/image/generate', requireAuth, async (req, res) => {
   const { prompt, size } = req.body;
   if (!prompt) return res.status(400).json({ error: 'Prompt required' });
   try {
@@ -2177,7 +2177,7 @@ app.post('/api/image/generate', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // DOCUMENT ANALYSIS
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/analyze', authMw, async (req, res) => {
+app.post('/api/analyze', requireAuth, async (req, res) => {
   const { text, question } = req.body;
   if (!text) return res.status(400).json({ error: 'Text required' });
   try {
@@ -2192,7 +2192,7 @@ app.post('/api/analyze', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // SENTIMENT ANALYSIS
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/sentiment', authMw, async (req, res) => {
+app.post('/api/sentiment', requireAuth, async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'Text required' });
   try {
@@ -2230,7 +2230,7 @@ app.post('/api/detect-language', (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // CODE TRANSLATION
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/code/translate', authMw, async (req, res) => {
+app.post('/api/code/translate', requireAuth, async (req, res) => {
   const { code, from, to } = req.body;
   if (!code || !to) return res.status(400).json({ error: 'Code and target language required' });
   try {
@@ -2243,7 +2243,7 @@ app.post('/api/code/translate', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // REGEX BUILDER
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/regex/build', authMw, async (req, res) => {
+app.post('/api/regex/build', requireAuth, async (req, res) => {
   const { description, flags } = req.body;
   if (!description) return res.status(400).json({ error: 'Description required' });
   try {
@@ -2256,7 +2256,7 @@ app.post('/api/regex/build', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // SQL QUERY BUILDER
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/sql/build', authMw, async (req, res) => {
+app.post('/api/sql/build', requireAuth, async (req, res) => {
   const { description, schema } = req.body;
   if (!description) return res.status(400).json({ error: 'Description required' });
   try {
@@ -2269,7 +2269,7 @@ app.post('/api/sql/build', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // PROMPT OPTIMIZER
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/prompt/optimize', authMw, async (req, res) => {
+app.post('/api/prompt/optimize', requireAuth, async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: 'Prompt required' });
   try {
@@ -2284,7 +2284,7 @@ app.post('/api/prompt/optimize', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // SLIDE DECK CREATOR
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/slides/create', authMw, async (req, res) => {
+app.post('/api/slides/create', requireAuth, async (req, res) => {
   const { topic, slides } = req.body;
   if (!topic) return res.status(400).json({ error: 'Topic required' });
   try {
@@ -2297,7 +2297,7 @@ app.post('/api/slides/create', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // MIND MAP GENERATOR
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/mindmap', authMw, async (req, res) => {
+app.post('/api/mindmap', requireAuth, async (req, res) => {
   const { topic } = req.body;
   if (!topic) return res.status(400).json({ error: 'Topic required' });
   try {
@@ -2310,7 +2310,7 @@ app.post('/api/mindmap', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // DIAGRAM GENERATOR (Mermaid)
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/diagram', authMw, async (req, res) => {
+app.post('/api/diagram', requireAuth, async (req, res) => {
   const { description, type } = req.body;
   if (!description) return res.status(400).json({ error: 'Description required' });
   try {
@@ -2323,7 +2323,7 @@ app.post('/api/diagram', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // WIREFRAME CREATOR
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/wireframe', authMw, async (req, res) => {
+app.post('/api/wireframe', requireAuth, async (req, res) => {
   const { description } = req.body;
   if (!description) return res.status(400).json({ error: 'Description required' });
   try {
@@ -2336,7 +2336,7 @@ app.post('/api/wireframe', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // BUSINESS PLAN GENERATOR
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/business/plan', authMw, async (req, res) => {
+app.post('/api/business/plan', requireAuth, async (req, res) => {
   const { idea, market } = req.body;
   if (!idea) return res.status(400).json({ error: 'Business idea required' });
   try {
@@ -2349,7 +2349,7 @@ app.post('/api/business/plan', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // EMAIL WRITER
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/email/write', authMw, async (req, res) => {
+app.post('/api/email/write', requireAuth, async (req, res) => {
   const { purpose, recipient, tone } = req.body;
   if (!purpose) return res.status(400).json({ error: 'Purpose required' });
   try {
@@ -2362,7 +2362,7 @@ app.post('/api/email/write', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // RESUME BUILDER
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/resume/build', authMw, async (req, res) => {
+app.post('/api/resume/build', requireAuth, async (req, res) => {
   const { name, experience, skills, education } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
   try {
@@ -2375,7 +2375,7 @@ app.post('/api/resume/build', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // STUDY PLAN GENERATOR
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/study/plan', authMw, async (req, res) => {
+app.post('/api/study/plan', requireAuth, async (req, res) => {
   const { topic, duration, level } = req.body;
   if (!topic) return res.status(400).json({ error: 'Topic required' });
   try {
@@ -2388,7 +2388,7 @@ app.post('/api/study/plan', authMw, async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // MEETING MINUTES
 // ══════════════════════════════════════════════════════════════════════════════
-app.post('/api/meeting/minutes', authMw, async (req, res) => {
+app.post('/api/meeting/minutes', requireAuth, async (req, res) => {
   const { transcript } = req.body;
   if (!transcript) return res.status(400).json({ error: 'Transcript required' });
   try {
@@ -2406,7 +2406,7 @@ app.post('/api/meeting/minutes', authMw, async (req, res) => {
 // F1: CONVERSATION SEARCH
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/chats/search/:query', authMw, async (req, res) => {
+app.get('/api/chats/search/:query', requireAuth, async (req, res) => {
   try {
     const q = req.params.query.toLowerCase();
     if (MONGO_URI) {
@@ -2428,7 +2428,7 @@ app.get('/api/chats/search/:query', authMw, async (req, res) => {
 // F2: PIN CHATS
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.put('/api/chats/:id/pin', authMw, async (req, res) => {
+app.put('/api/chats/:id/pin', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) {
       const chat = await Chat.findOne({ _id: req.params.id, userId: req.user.id });
@@ -2444,7 +2444,7 @@ app.put('/api/chats/:id/pin', authMw, async (req, res) => {
 // F3: ARCHIVE CHATS
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.put('/api/chats/:id/archive', authMw, async (req, res) => {
+app.put('/api/chats/:id/archive', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) {
       const chat = await Chat.findOne({ _id: req.params.id, userId: req.user.id });
@@ -2460,7 +2460,7 @@ app.put('/api/chats/:id/archive', authMw, async (req, res) => {
 // F9: EDIT & RESEND
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.put('/api/chats/:chatId/messages/:msgIdx', authMw, async (req, res) => {
+app.put('/api/chats/:chatId/messages/:msgIdx', requireAuth, async (req, res) => {
   const { content } = req.body;
   if (!content) return res.status(400).json({ error: 'Content required' });
   try {
@@ -2480,7 +2480,7 @@ app.put('/api/chats/:chatId/messages/:msgIdx', authMw, async (req, res) => {
 // F10: MESSAGE REACTIONS
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/chats/:chatId/messages/:msgIdx/react', authMw, async (req, res) => {
+app.post('/api/chats/:chatId/messages/:msgIdx/react', requireAuth, async (req, res) => {
   const { emoji } = req.body;
   try {
     let chat;
@@ -2502,7 +2502,7 @@ app.post('/api/chats/:chatId/messages/:msgIdx/react', authMw, async (req, res) =
 // F36: USAGE ALERTS
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/alerts', authMw, async (req, res) => {
+app.get('/api/alerts', requireAuth, async (req, res) => {
   try {
     let user;
     if (MONGO_URI) user = await User.findById(req.user.id).select('messagesThisMonth plan bonusMessages');
@@ -2522,7 +2522,7 @@ app.get('/api/alerts', authMw, async (req, res) => {
 // F34: AUDIT LOGS
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/audit', authMw, adminMw, async (req, res) => {
+app.get('/api/audit', requireAuth, adminMw, async (req, res) => {
   try {
     if (MONGO_URI) return res.json({ logs: await Log.find().sort({ createdAt: -1 }).limit(100).lean() });
     res.json({ logs: memLogs.slice(-100).reverse() });
