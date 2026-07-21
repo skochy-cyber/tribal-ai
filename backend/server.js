@@ -8,6 +8,8 @@
 
 const express   = require('express');
 const cors      = require('cors');
+const multer      = require('multer');
+const upload      = multer({ dest: 'uploads/' });
 const bcrypt    = require('bcryptjs');
 const jwt       = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
