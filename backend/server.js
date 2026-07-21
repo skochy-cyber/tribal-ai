@@ -217,7 +217,7 @@ const apiLimiter = rateLimit({ windowMs: 15*60*1000, max: 500, message: { error:
 const chatLimit  = rateLimit({ windowMs: 1*60*1000, max: 30, message: { error: 'Slow down — too many messages' } });
 app.use('/api/', apiLimiter);
 
-const authMw = (req, res, next) => {
+const requireAuth = (req, res, next) => {
   const token = (req.headers.authorization || '').replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'Token required' });
   try { req.user = jwt.verify(token, JWT_SECRET); next(); }
@@ -3122,7 +3122,7 @@ console.log('[v19.0] Added 16 new routes: document-chat, agents, templates, bran
 // ==================== v19.1 ADMIN FEATURES ====================
 
 // Revenue tracking
-app.get('/api/admin/revenue', requireAdmin, (req, res) => {
+app.get('/api/admin/revenue', requireAuth, (req, res) => {
   res.json({
     today: {amount:48500, transactions:8},
     week: {amount:312000, transactions:52},
@@ -3133,7 +3133,7 @@ app.get('/api/admin/revenue', requireAdmin, (req, res) => {
 });
 
 // API usage stats
-app.get('/api/admin/api-usage', requireAdmin, (req, res) => {
+app.get('/api/admin/api-usage', requireAuth, (req, res) => {
   res.json({
     callsToday: 12847,
     activeKeys: 342,
@@ -3150,7 +3150,7 @@ app.get('/api/admin/api-usage', requireAdmin, (req, res) => {
 });
 
 // System health
-app.get('/api/admin/health', requireAdmin, (req, res) => {
+app.get('/api/admin/health', requireAuth, (req, res) => {
   res.json({
     uptime: process.uptime(),
     services: [
@@ -3167,7 +3167,7 @@ app.get('/api/admin/health', requireAdmin, (req, res) => {
 
 // Feedback/support tickets
 const feedbackTickets = new Map();
-app.get('/api/admin/feedback', requireAdmin, (req, res) => {
+app.get('/api/admin/feedback', requireAuth, (req, res) => {
   const tickets = [...feedbackTickets.values()].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
   res.json({tickets, stats:{open:7, resolved:12, avgResponse:'2.4h', satisfaction:4.6}});
 });
@@ -3179,7 +3179,7 @@ app.post('/api/feedback', (req, res) => {
   res.json({ticket});
 });
 
-app.put('/api/admin/feedback/:id', requireAdmin, (req, res) => {
+app.put('/api/admin/feedback/:id', requireAuth, (req, res) => {
   const ticket = feedbackTickets.get(req.params.id);
   if (!ticket) return res.status(404).json({error:'Not found'});
   Object.assign(ticket, req.body);
@@ -3190,7 +3190,7 @@ console.log('[v19.1] Added admin routes: revenue, api-usage, health, feedback');
 
 // Admin settings persistence (payment gateways)
 const adminSettings = new Map();
-app.get('/api/admin/settings', requireAdmin, (req, res) => {
+app.get('/api/admin/settings', requireAuth, (req, res) => {
   const settings = adminSettings.get('main') || {};
   // Mask sensitive keys for display
   const safe = {...settings};
@@ -3202,7 +3202,7 @@ app.get('/api/admin/settings', requireAdmin, (req, res) => {
   if (safe.groqKey) safe.groqKey = safe.groqKey.slice(0,8)+'...';
   res.json(safe);
 });
-app.put('/api/admin/settings', requireAdmin, (req, res) => {
+app.put('/api/admin/settings', requireAuth, (req, res) => {
   const current = adminSettings.get('main') || {};
   // Only overwrite keys if new values are provided (not masked)
   const data = {...req.body};
