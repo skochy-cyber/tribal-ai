@@ -322,16 +322,24 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 
 <!-- SETTINGS MODAL -->
 <div class="modal-bg" id="settingsModal">
-  <div class="modal">
-    <h2>Custom Instructions</h2>
-    <p>Set a system prompt that guides how AI responds to you.</p>
-    <div class="fg">
-      <label>Instructions</label>
-      <textarea id="customInstructions" placeholder="e.g. You are a senior Python developer. Always write clean, well-commented code."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
-      <button class="btn" onclick="saveInstructions()">Save</button>
+  <div class="modal" style="max-width:500px">
+    <h2>Settings</h2>
+    <div style="margin-top:16px">
+      <h3 style="font-size:.92rem;margin-bottom:12px">Theme</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        <button onclick="applyThemePreset('midnight')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#0f0e0b;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">🌙 Midnight</button>
+        <button onclick="applyThemePreset('ocean')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#0a1628;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">🌊 Ocean</button>
+        <button onclick="applyThemePreset('forest')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#0a1a0f;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">🌿 Forest</button>
+        <button onclick="applyThemePreset('royal')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#1a0a2e;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">👑 Royal</button>
+        <button onclick="applyThemePreset('sunset')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#1a1408;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">🌅 Sunset</button>
+        <button onclick="applyThemePreset('cherry')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#1a0a0a;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">🍒 Cherry</button>
+      </div>
+      <h3 style="font-size:.92rem;margin-bottom:12px">Custom Instructions</h3>
+      <textarea id="customInstructions" placeholder="e.g. You are a senior Python developer. Always write clean, well-commented code." style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--ink);font:inherit;font-size:.88rem;outline:none;min-height:80px;resize:vertical"></textarea>
+      <div style="margin-top:16px">
+        <button class="btn" onclick="saveInstructions()" style="margin-right:8px">Save Instructions</button>
+        <button class="btn btn-ghost" onclick="closeSettings()">Close</button>
+      </div>
     </div>
   </div>
 </div>
@@ -670,6 +678,55 @@ function toggleTheme() {
   if (token) fetch(`${API}/api/me`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ theme }) });
   if (user) { user.theme = theme; localStorage.setItem('ta_user', JSON.stringify(user)); }
 }
+
+function applyThemePreset(id) {
+  fetch(`${API}/api/themes`).then(r => r.json()).then(data => {
+    const preset = data.themes.find(t => t.id === id);
+    if (preset) {
+      document.documentElement.style.setProperty('--accent', preset.accent);
+      document.documentElement.style.setProperty('--bg', preset.bg);
+      if (preset.dark === false) document.body.classList.add('light');
+      else document.body.classList.remove('light');
+      toast(`Theme: ${preset.name}`, 'ok');
+    }
+  });
+}
+
+// ── Bookmarks ──────────────────────────────────────────────────────────────
+function bookmarkMessage(chatId, messageId, content) {
+  if (!token) return showAuth('login');
+  fetch(`${API}/api/bookmarks`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ chatId, messageId, content })
+  }).then(r => r.json()).then(d => {
+    if (d.ok) toast('Bookmarked!', 'ok');
+  });
+}
+
+async function showBookmarks() {
+  if (!token) return showAuth('login');
+  try {
+    const r = await fetch(`${API}/api/bookmarks`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await r.json();
+    const el = document.getElementById('messages');
+    const bms = data.bookmarks || [];
+    if (!bms.length) { toast('No bookmarks yet', 'ok'); return; }
+    toast(`You have ${bms.length} bookmarks`, 'ok');
+  } catch {}
+}
+
+// ── Streak ─────────────────────────────────────────────────────────────────
+async function loadStreak() {
+  if (!token) return;
+  try {
+    const r = await fetch(`${API}/api/streak`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await r.json();
+    if (data.streak > 0) {
+      document.getElementById('usageBadge').textContent = `🔥 ${data.streak} day streak`;
+    }
+  } catch {}
+}
+if (token) setTimeout(loadStreak, 2000);
 
 // ── Google Social Login ──────────────────────────────────────────────────────
 function initGoogleLogin() {

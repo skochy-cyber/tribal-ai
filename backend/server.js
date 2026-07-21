@@ -2008,6 +2008,137 @@ app.get('/api/leaderboard', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// CHAT BOOKMARKS
+// ══════════════════════════════════════════════════════════════════════════════
+let bookmarks = {};
+
+app.post('/api/bookmarks', authMw, (req, res) => {
+  const { chatId, messageId, content } = req.body;
+  if (!chatId || !messageId) return res.status(400).json({ error: 'chatId and messageId required' });
+  const uid = req.user.id;
+  if (!bookmarks[uid]) bookmarks[uid] = [];
+  const bm = { id: Date.now().toString(), chatId, messageId, content, createdAt: new Date().toISOString() };
+  bookmarks[uid].push(bm);
+  res.json({ ok: true, bookmark: bm });
+});
+
+app.get('/api/bookmarks', authMw, (req, res) => {
+  res.json({ bookmarks: bookmarks[req.user.id] || [] });
+});
+
+app.delete('/api/bookmarks/:id', authMw, (req, res) => {
+  const uid = req.user.id;
+  bookmarks[uid] = (bookmarks[uid] || []).filter(b => b.id !== req.params.id);
+  res.json({ ok: true });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// THEME PRESETS
+// ══════════════════════════════════════════════════════════════════════════════
+const themePresets = [
+  { id: 'midnight', name: 'Midnight', accent: '#c84b09', bg: '#0f0e0b' },
+  { id: 'ocean', name: 'Ocean', accent: '#3b82f6', bg: '#0a1628' },
+  { id: 'forest', name: 'Forest', accent: '#22c55e', bg: '#0a1a0f' },
+  { id: 'royal', name: 'Royal', accent: '#a855f7', bg: '#1a0a2e' },
+  { id: 'sunset', name: 'Sunset', accent: '#f59e0b', bg: '#1a1408' },
+  { id: 'cherry', name: 'Cherry', accent: '#ef4444', bg: '#1a0a0a' },
+  { id: 'minimal', name: 'Minimal', accent: '#d6d5d0', bg: '#ffffff', dark: false }
+];
+
+app.get('/api/themes', (req, res) => {
+  res.json({ themes: themePresets });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DAILY STREAK
+// ══════════════════════════════════════════════════════════════════════════════
+let userStreaks = {};
+
+app.get('/api/streak', authMw, (req, res) => {
+  const uid = req.user.id;
+  const today = new Date().toISOString().split('T')[0];
+  if (!userStreaks[uid]) userStreaks[uid] = { count: 0, lastDate: null };
+  const streak = userStreaks[uid];
+  if (streak.lastDate !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    if (streak.lastDate === yesterday) {
+      streak.count++;
+    } else if (streak.lastDate !== today) {
+      streak.count = 1;
+    }
+    streak.lastDate = today;
+  }
+  res.json({ streak: streak.count, lastDate: streak.lastDate });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// NOTIFICATION PREFERENCES
+// ══════════════════════════════════════════════════════════════════════════════
+let notifPrefs = {};
+
+app.get('/api/notifications', authMw, (req, res) => {
+  const prefs = notifPrefs[req.user.id] || { email: true, push: false, marketing: false };
+  res.json({ preferences: prefs });
+});
+
+app.put('/api/notifications', authMw, (req, res) => {
+  notifPrefs[req.user.id] = { ...notifPrefs[req.user.id], ...req.body };
+  res.json({ ok: true, preferences: notifPrefs[req.user.id] });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TWO-FACTOR AUTH SETUP (TOTP)
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/2fa/setup', authMw, async (req, res) => {
+  const secret = crypto.randomBytes(20).toString('hex');
+  // In production, use speakeasy or otplib for real TOTP
+  res.json({ ok: true, secret, qrUrl: `otpauth://totp/TribalAI:${req.user.email}?secret=${secret}&issuer=TribalAI` });
+});
+
+app.post('/api/2fa/verify', authMw, async (req, res) => {
+  const { code, secret } = req.body;
+  // In production, verify TOTP code
+  if (MONGO_URI) {
+    await User.findByIdAndUpdate(req.user.id, { twoFactorEnabled: true, twoFactorSecret: secret });
+  }
+  res.json({ ok: true, message: '2FA enabled' });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHAT PIN/UNPIN (already exists but adding unpin)
+// ══════════════════════════════════════════════════════════════════════════════
+app.put('/api/chats/:id/unpin', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) await Chat.findByIdAndUpdate(req.params.id, { pinned: false });
+    else { const c = memChats.find(c => c.id == req.params.id); if (c) c.pinned = false; }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BULK ACTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/chats/bulk-delete', authMw, async (req, res) => {
+  const { chatIds } = req.body;
+  if (!chatIds || !Array.isArray(chatIds)) return res.status(400).json({ error: 'chatIds array required' });
+  try {
+    if (MONGO_URI) await Chat.deleteMany({ _id: { $in: chatIds }, userId: req.user.id });
+    else { chatIds.forEach(id => { const i = memChats.findIndex(c => c.id == id); if (i >= 0) memChats.splice(i, 1); }); }
+    res.json({ ok: true, deleted: chatIds.length });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/chats/bulk-archive', authMw, async (req, res) => {
+  const { chatIds, archived } = req.body;
+  if (!chatIds || !Array.isArray(chatIds)) return res.status(400).json({ error: 'chatIds array required' });
+  try {
+    if (MONGO_URI) await Chat.updateMany({ _id: { $in: chatIds }, userId: req.user.id }, { archived: archived !== false });
+    else { chatIds.forEach(id => { const c = memChats.find(c => c.id == id); if (c) c.archived = archived !== false; }); }
+    res.json({ ok: true, updated: chatIds.length });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // HEALTH & CATCH-ALL
 // ══════════════════════════════════════════════════════════════════════════════
 
