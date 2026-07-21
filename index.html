@@ -73,6 +73,22 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 .msg-content pre:hover .copy-btn{opacity:1}
 .copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
 
+/* Message actions */
+.msg-actions{display:flex;gap:2px;margin-top:4px;opacity:0;transition:.15s}.msg:hover .msg-actions{opacity:1}.msg-actions button{background:none;border:none;font-size:.72rem;cursor:pointer;padding:2px 4px;border-radius:4px;transition:.1s}.msg-actions button:hover{background:var(--bg3);transform:scale(1.2)}
+.msg-reactions{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.msg-reactions .reaction{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;font-size:.72rem;cursor:pointer;transition:.1s}.msg-reactions .reaction:hover{border-color:var(--accent)}.msg-reactions .reaction.active{border-color:var(--accent);background:rgba(200,75,9,.1)}
+
+/* Notification bell */
+.notif-bell{position:relative}.notif-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--accent);display:none}.notif-dot.show{display:block}
+
+/* Drag and drop overlay */
+.drop-overlay{position:fixed;inset:0;background:rgba(200,75,9,.1);border:3px dashed var(--accent);display:none;align-items:center;justify-content:center;z-index:1000;pointer-events:none}.drop-overlay.active{display:flex}.drop-overlay span{background:var(--surface);padding:16px 24px;border-radius:var(--r);font-weight:700;color:var(--accent);border:1px solid var(--accent)}
+
+/* Onboarding tour */
+.tour-step{position:fixed;padding:16px;background:var(--surface);border:2px solid var(--accent);border-radius:var(--r);z-index:999;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.5)}.tour-step h4{margin-bottom:6px;font-size:.92rem}.tour-step p{font-size:.82rem;color:var(--ink3);margin-bottom:10px}.tour-step .btn{padding:6px 14px;font-size:.78rem}
+
+/* Dark/light toggle animation */
+.theme-transition{transition:background .4s,color .4s,border-color .4s,box-shadow .4s!important}
+
 .typing-indicator{display:flex;gap:4px;padding:8px 0}
 .typing-indicator span{width:6px;height:6px;border-radius:50%;background:var(--ink4);animation:bounce 1.4s infinite}
 .typing-indicator span:nth-child(2){animation-delay:.2s}
@@ -198,6 +214,10 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
       <span id="modelLabel">Claude Sonnet 4</span>
     </div>
     <div class="topbar-right">
+      <button class="topbar-btn notif-bell" onclick="showNotifications()" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-dot"></span>
+      </button>
       <div class="usage-badge" id="usageBadge">50 left</div>
       <select id="modelSelect" onchange="switchModel(this.value)" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:.78rem;color:var(--ink3);cursor:pointer;outline:none">
         <option value="claude-sonnet-4">Claude Sonnet 4</option>
@@ -536,6 +556,11 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 </div>
 
 <div class="toast-wrap" id="toasts"></div>
+
+<!-- DRAG AND DROP OVERLAY -->
+<div class="drop-overlay"><span>📎 Drop files here to upload</span></div>
+
+<!-- NOTIFICATION BELL (topbar) -->
 
 <!-- PERSONA MODAL -->
 <div class="modal-bg" id="personaModal">
@@ -1025,9 +1050,18 @@ function appendMsg(role, content) {
   div.className = `msg msg-${role === 'user' ? 'user' : 'ai'}`;
   const avatar = role === 'user' ? (user?.name || 'U')[0].toUpperCase() : 'T';
   const rendered = role === 'assistant' ? marked.parse(content) : esc(content).replace(/\n/g, '<br>');
+  const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
   div.innerHTML = `
     <div class="msg-avatar">${avatar}</div>
     <div class="msg-content">${rendered}</div>
+    <div class="msg-actions">
+      <button onclick="copyMsgContent(this)" title="Copy">📋</button>
+      <button onclick="reactToMsg('${msgId}','👍')" title="Like">👍</button>
+      <button onclick="reactToMsg('${msgId}','❤️')" title="Love">❤️</button>
+      <button onclick="reactToMsg('${msgId}','😂')" title="Funny">😂</button>
+      <button onclick="bookmarkMsg('${msgId}','${esc(content).slice(0,100)}')" title="Bookmark">⭐</button>
+    </div>
+    <div class="msg-reactions" id="reactions_${msgId}"></div>
   `;
   // Add copy button to code blocks
   div.querySelectorAll('pre').forEach(pre => {
@@ -1301,7 +1335,10 @@ const commands = [
   { name: 'Optimize Prompt', icon: '✨', action: 'showShortcutsModal()' },
   { name: 'Get Embed Code', icon: '🔗', action: 'showEmbedModal()' },
   { name: 'Import Chat', icon: '📥', action: 'showImportModal()' },
-  { name: 'Custom Instructions', icon: '📝', action: 'showInstructionsModal()' }
+  { name: 'Custom Instructions', icon: '📝', action: 'showInstructionsModal()' },
+  { name: 'Split View', icon: '🔲', action: 'toggleSplitView()' },
+  { name: 'Start Tour', icon: '🗺️', action: 'startTour()' },
+  { name: 'Notifications', icon: '🔔', action: 'showNotifications()' }
 ];
 
 function toggleCommandPalette() {
@@ -1928,6 +1965,135 @@ function closeOnboarding() {
   localStorage.setItem('ta_onboarded', '1');
 }
 if (!localStorage.getItem('ta_onboarded') && !token) { setTimeout(showOnboarding, 1500); }
+
+// ═══ MESSAGE REACTIONS ═════════════════════════════════════════════════════
+function reactToMsg(msgId, emoji) {
+  const el = document.getElementById('reactions_' + msgId);
+  if (!el) return;
+  const existing = el.querySelector(`[data-emoji="${emoji}"]`);
+  if (existing) {
+    const count = parseInt(existing.dataset.count || '1') + 1;
+    existing.dataset.count = count;
+    existing.innerHTML = `${emoji} ${count}`;
+    existing.classList.add('active');
+  } else {
+    const span = document.createElement('span');
+    span.className = 'reaction active';
+    span.dataset.emoji = emoji;
+    span.dataset.count = '1';
+    span.innerHTML = `${emoji} 1`;
+    span.onclick = () => {
+      const c = parseInt(span.dataset.count || '1') + 1;
+      span.dataset.count = c;
+      span.innerHTML = `${emoji} ${c}`;
+    };
+    el.appendChild(span);
+  }
+}
+function copyMsgContent(btn) {
+  const content = btn.closest('.msg').querySelector('.msg-content').textContent;
+  navigator.clipboard.writeText(content);
+  btn.textContent = '✅';
+  setTimeout(() => btn.textContent = '📋', 1500);
+}
+function bookmarkMsg(msgId, preview) {
+  if (!token) return showAuth('login');
+  fetch(`${API}/api/bookmarks`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ chatId: activeChatId, messageId: msgId, content: preview })
+  }).then(r => r.json()).then(d => { if (d.ok) toast('⭐ Bookmarked!', 'ok'); });
+}
+
+// ═══ NOTIFICATION BELL ═════════════════════════════════════════════════════
+let notifications = [];
+function addNotification(msg, type) {
+  notifications.push({ msg, type, time: new Date() });
+  const dot = document.querySelector('.notif-dot');
+  if (dot) dot.classList.add('show');
+}
+function showNotifications() {
+  if (!notifications.length) { toast('No new notifications', 'ok'); return; }
+  toast(`${notifications.length} new notifications`, 'ok');
+  notifications = [];
+  const dot = document.querySelector('.notif-dot');
+  if (dot) dot.classList.remove('show');
+}
+
+// ═══ DRAG AND DROP ═════════════════════════════════════════════════════════
+document.addEventListener('dragover', e => { e.preventDefault(); document.querySelector('.drop-overlay')?.classList.add('active'); });
+document.addEventListener('dragleave', e => { if (e.relatedTarget === null) document.querySelector('.drop-overlay')?.classList.remove('active'); });
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  document.querySelector('.drop-overlay')?.classList.remove('active');
+  if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+});
+
+// ═══ ONBOARDING TOUR ═══════════════════════════════════════════════════════
+let tourStep = 0;
+const tourSteps = [
+  { title: '💬 Welcome!', text: 'Start chatting with AI. Type any message below.', target: '.input-area', pos: 'top' },
+  { title: '🤖 Choose Model', text: 'Pick different AI models from the top bar.', target: '#modelSelect', pos: 'bottom' },
+  { title: '📋 Sidebar', text: 'Your chats are saved here. Create folders to organize.', target: '#sidebar', pos: 'right' },
+  { title: '🎨 Themes', text: 'Switch themes in Settings. Try Midnight, Ocean, or Royal!', target: '.topbar-right', pos: 'bottom' },
+  { title: '🚀 Ready!', text: 'You're all set! Explore more in the command palette (Ctrl+K).', target: null, pos: 'center' }
+];
+function startTour() {
+  tourStep = 0;
+  showTourStep();
+}
+function showTourStep() {
+  document.querySelectorAll('.tour-step').forEach(el => el.remove());
+  if (tourStep >= tourSteps.length) return;
+  const step = tourSteps[tourStep];
+  const tip = document.createElement('div');
+  tip.className = 'tour-step';
+  tip.innerHTML = `<h4>${step.title}</h4><p>${step.text}</p><div style="display:flex;gap:6px"><button class="btn btn-accent" onclick="tourStep++;showTourStep()">Next</button><button style="background:none;border:none;color:var(--ink4);font:inherit;font-size:.78rem;cursor:pointer" onclick="document.querySelectorAll('.tour-step').forEach(el=>el.remove())">Skip</button></div>`;
+  document.body.appendChild(tip);
+  if (step.target) {
+    const t = document.querySelector(step.target);
+    if (t) {
+      const r = t.getBoundingClientRect();
+      if (step.pos === 'top') { tip.style.top = (r.top - tip.offsetHeight - 8) + 'px'; tip.style.left = (r.left + r.width/2 - 140) + 'px'; }
+      else if (step.pos === 'bottom') { tip.style.top = (r.bottom + 8) + 'px'; tip.style.left = (r.left + r.width/2 - 140) + 'px'; }
+      else if (step.pos === 'right') { tip.style.top = (r.top + 20) + 'px'; tip.style.left = (r.right + 8) + 'px'; }
+    }
+  } else {
+    tip.style.top = '40%'; tip.style.left = '50%'; tip.style.transform = 'translate(-50%,-50%)';
+  }
+}
+
+// ═══ THEME TRANSITION ═══════════════════════════════════════════════════════
+const origToggle = toggleTheme;
+toggleTheme = function() {
+  document.body.classList.add('theme-transition');
+  origToggle();
+  setTimeout(() => document.body.classList.remove('theme-transition'), 500);
+};
+
+// ═══ MULTI-TAB CHAT ═══════════════════════════════════════════════════════
+let splitMode = false;
+function toggleSplitView() {
+  splitMode = !splitMode;
+  const area = document.getElementById('chatArea');
+  if (splitMode) {
+    area.style.display = 'grid';
+    area.style.gridTemplateColumns = '1fr 1fr';
+    area.style.gap = '12px';
+    toast('Split view ON — open a second chat', 'ok');
+  } else {
+    area.style.display = '';
+    area.style.gridTemplateColumns = '';
+    area.style.gap = '';
+    toast('Split view OFF', 'ok');
+  }
+}
+
+// ═══ PWA SERVICE WORKER ════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
 
 // ── F36: Usage Alert Check ─────────────────────────────────────────────────
 async function checkUsageAlerts() {
