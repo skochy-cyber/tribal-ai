@@ -2282,6 +2282,123 @@ app.post('/api/prompt/optimize', authMw, async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// SLIDE DECK CREATOR
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/slides/create', authMw, async (req, res) => {
+  const { topic, slides } = req.body;
+  if (!topic) return res.status(400).json({ error: 'Topic required' });
+  try {
+    const prompt = `Create a ${slides || 10}-slide presentation outline for: ${topic}\n\nFormat each slide as:\n---\nSlide [number]: [title]\n- bullet point 1\n- bullet point 2\n- bullet point 3\n---`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, slides: response, topic });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MIND MAP GENERATOR
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/mindmap', authMw, async (req, res) => {
+  const { topic } = req.body;
+  if (!topic) return res.status(400).json({ error: 'Topic required' });
+  try {
+    const prompt = `Create a mind map for: ${topic}\n\nFormat as a hierarchical structure:\nCentral: ${topic}\n├── Branch 1\n│   ├── Sub-branch 1a\n│   └── Sub-branch 1b\n├── Branch 2\n│   ├── Sub-branch 2a\n│   └── Sub-branch 2b\n└── Branch 3`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, mindmap: response, topic });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DIAGRAM GENERATOR (Mermaid)
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/diagram', authMw, async (req, res) => {
+  const { description, type } = req.body;
+  if (!description) return res.status(400).json({ error: 'Description required' });
+  try {
+    const prompt = `Generate a Mermaid ${type || 'flowchart'} diagram for: ${description}\n\nReturn ONLY the Mermaid code, no explanation.`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, diagram: response.trim(), type: type || 'flowchart' });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WIREFRAME CREATOR
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/wireframe', authMw, async (req, res) => {
+  const { description } = req.body;
+  if (!description) return res.status(400).json({ error: 'Description required' });
+  try {
+    const prompt = `Create an ASCII wireframe for: ${description}\n\nUse boxes, lines, and text to represent UI elements. Make it clean and readable.`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, wireframe: response, description });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BUSINESS PLAN GENERATOR
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/business/plan', authMw, async (req, res) => {
+  const { idea, market } = req.body;
+  if (!idea) return res.status(400).json({ error: 'Business idea required' });
+  try {
+    const prompt = `Create a business plan for: ${idea}${market ? `\nTarget market: ${market}` : ''}\n\nInclude: Executive Summary, Problem, Solution, Market Size, Business Model, Marketing Strategy, Financial Projections, Team, Milestones.`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, plan: response, idea });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EMAIL WRITER
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/email/write', authMw, async (req, res) => {
+  const { purpose, recipient, tone } = req.body;
+  if (!purpose) return res.status(400).json({ error: 'Purpose required' });
+  try {
+    const prompt = `Write a ${tone || 'professional'} email for: ${purpose}${recipient ? `\nRecipient: ${recipient}` : ''}\n\nInclude subject line, greeting, body, and closing.`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, email: response, purpose });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RESUME BUILDER
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/resume/build', authMw, async (req, res) => {
+  const { name, experience, skills, education } = req.body;
+  if (!name) return res.status(400).json({ error: 'Name required' });
+  try {
+    const prompt = `Build a professional resume for:\nName: ${name}${experience ? `\nExperience: ${experience}` : ''}${skills ? `\nSkills: ${skills}` : ''}${education ? `\nEducation: ${education}` : ''}\n\nFormat as a clean, ATS-friendly resume with sections: Contact, Summary, Experience, Skills, Education.`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, resume: response, name });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STUDY PLAN GENERATOR
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/study/plan', authMw, async (req, res) => {
+  const { topic, duration, level } = req.body;
+  if (!topic) return res.status(400).json({ error: 'Topic required' });
+  try {
+    const prompt = `Create a ${duration || '2-week'} study plan for: ${topic}\nLevel: ${level || 'beginner'}\n\nInclude: Daily schedule, resources, practice exercises, and milestones.`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, plan: response, topic });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MEETING MINUTES
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/meeting/minutes', authMw, async (req, res) => {
+  const { transcript } = req.body;
+  if (!transcript) return res.status(400).json({ error: 'Transcript required' });
+  try {
+    const prompt = `Generate meeting minutes from this transcript:\n\n${transcript}\n\nInclude: Attendees, Key Points, Decisions Made, Action Items, Next Steps.`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, minutes: response });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // HEALTH & CATCH-ALL
 // ══════════════════════════════════════════════════════════════════════════════
 

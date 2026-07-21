@@ -1543,6 +1543,138 @@ async function optimizePrompt(prompt) {
   } catch {}
 }
 
+// ── Slide Deck Creator ─────────────────────────────────────────────────────
+async function createSlides(topic, numSlides) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/slides/create`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ topic, slides: numSlides || 10 })
+    });
+    hideSkeleton();
+    if (r.ok) { const d = await r.json(); appendMsg('assistant', d.slides); }
+  } catch { hideSkeleton(); }
+}
+
+// ── Mind Map Generator ─────────────────────────────────────────────────────
+async function createMindMap(topic) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/mindmap`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ topic })
+    });
+    hideSkeleton();
+    if (r.ok) { const d = await r.json(); appendMsg('assistant', d.mindmap); }
+  } catch { hideSkeleton(); }
+}
+
+// ── Diagram Generator ──────────────────────────────────────────────────────
+async function createDiagram(desc, type) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/diagram`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ description: desc, type: type || 'flowchart' })
+    });
+    hideSkeleton();
+    if (r.ok) { const d = await r.json(); appendMsg('assistant', '```mermaid\n' + d.diagram + '\n```'); }
+  } catch { hideSkeleton(); }
+}
+
+// ── Wireframe Creator ──────────────────────────────────────────────────────
+async function createWireframe(desc) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/wireframe`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ description: desc })
+    });
+    hideSkeleton();
+    if (r.ok) { const d = await r.json(); appendMsg('assistant', '```\n' + d.wireframe + '\n```'); }
+  } catch { hideSkeleton(); }
+}
+
+// ── Business Plan Generator ────────────────────────────────────────────────
+async function createBusinessPlan(idea, market) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/business/plan`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ idea, market })
+    });
+    hideSkeleton();
+    if (r.ok) { const d = await r.json(); appendMsg('assistant', d.plan); }
+  } catch { hideSkeleton(); }
+}
+
+// ── Email Writer ───────────────────────────────────────────────────────────
+async function writeEmail(purpose, recipient, tone) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/email/write`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ purpose, recipient, tone })
+    });
+    hideSkeleton();
+    if (r.ok) { const d = await r.json(); appendMsg('assistant', d.email); }
+  } catch { hideSkeleton(); }
+}
+
+// ── Resume Builder ─────────────────────────────────────────────────────────
+async function buildResume(name, experience, skills, education) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/resume/build`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ name, experience, skills, education })
+    });
+    hideSkeleton();
+    if (r.ok) { const d = await r.json(); appendMsg('assistant', d.resume); }
+  } catch { hideSkeleton(); }
+}
+
+// ── Study Plan Generator ───────────────────────────────────────────────────
+async function createStudyPlan(topic, duration, level) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/study/plan`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ topic, duration, level })
+    });
+    hideSkeleton();
+    if (r.ok) { const d = await r.json(); appendMsg('assistant', d.plan); }
+  } catch { hideSkeleton(); }
+}
+
+// ── Meeting Minutes ────────────────────────────────────────────────────────
+async function generateMeetingMinutes(transcript) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/meeting/minutes`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ transcript })
+    });
+    hideSkeleton();
+    if (r.ok) { const d = await r.json(); appendMsg('assistant', d.minutes); }
+  } catch { hideSkeleton(); }
+}
+      const data = await r.json();
+      document.getElementById('inputBox').value = data.optimized;
+      toast('Prompt optimized!', 'ok');
+    }
+  } catch {}
+}
+
 // ── Skeleton Loading ──────────────────────────────────────────────────────
 function showSkeleton() {
   const el = document.getElementById('messages');
