@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Models</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--blue:#3b82f6;--purple:#a855f7;--r:12px;--shadow:0 4px 20px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+nav{height:64px;display:flex;align-items:center;padding:0 6%;background:rgba(15,14,11,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.nav-links{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-links a{font-size:.82rem;color:var(--ink3);text-decoration:none;font-weight:500;padding:.42rem .9rem;border-radius:10px;transition:.15s}
+.nav-links a:hover{background:var(--bg3);color:var(--ink)}
+.btn-nav{background:var(--accent)!important;color:#fff!important;padding:.42rem 1rem!important}
+.btn-nav:hover{background:var(--accent2)!important}
+
+.page{padding:60px 6% 80px;max-width:1000px;margin:0 auto}
+.page-header{text-align:center;margin-bottom:48px}
+.page-header h1{font-family:'Instrument Serif',serif;font-size:clamp(2rem,4vw,2.8rem);font-weight:400;margin-bottom:12px}
+.page-header h1 em{color:var(--accent);font-style:italic}
+.page-header p{color:var(--ink3);font-size:.95rem;max-width:500px;margin:0 auto;line-height:1.6}
+
+.model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-bottom:48px}
+.model-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;transition:.2s;position:relative}
+.model-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--border2)}
+.model-card .badge{position:absolute;top:16px;right:16px;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:12px}
+.badge-free{background:var(--green-bg);color:var(--green)}
+.badge-pro{background:var(--accent-bg);color:var(--accent)}
+.model-icon{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;font-size:1.5rem;margin-bottom:16px}
+.model-card h3{font-size:1.05rem;font-weight:600;margin-bottom:4px}
+.model-card .provider{font-size:.78rem;color:var(--ink4);margin-bottom:12px}
+.model-card .desc{font-size:.84rem;color:var(--ink3);line-height:1.6;margin-bottom:16px}
+.model-specs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.spec{background:var(--bg3);padding:10px 12px;border-radius:8px}
+.spec .label{font-size:.72rem;color:var(--ink4);margin-bottom:2px}
+.spec .value{font-size:.84rem;font-weight:600}
+
+.model-detail{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:32px}
+.model-detail h2{font-family:'Instrument Serif',serif;font-size:1.4rem;font-weight:400;margin-bottom:16px}
+.model-detail h2 em{color:var(--accent);font-style:italic}
+.bench-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.bench{background:var(--bg3);padding:16px;border-radius:var(--r);text-align:center}
+.bench .score{font-family:'Instrument Serif',serif;font-size:1.6rem;margin-bottom:4px}
+.bench .name{font-size:.78rem;color:var(--ink3)}
+
+.note{text-align:center;padding:24px;background:var(--accent-bg);border:1px solid rgba(200,75,9,.2);border-radius:var(--r);font-size:.84rem;color:var(--ink3)}
+.note strong{color:var(--accent)}
+
+footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);color:var(--ink4);font-size:.74rem;text-align:center}
+@media(max-width:768px){.bench-grid{grid-template-columns:repeat(2,1fr)}.model-grid{grid-template-columns:1fr}.page{padding:40px 6% 60px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-links">
+    <a href="/">Chat</a>
+    <a href="login.html">Sign in</a>
+    <a class="btn-nav" href="signup.html">Get Started</a>
+  </div>
+</nav>
+
+<section class="page">
+  <div class="page-header">
+    <h1>AI <em>Models</em></h1>
+    <p>Choose the right model for your task. Each has unique strengths in reasoning, coding, and creativity.</p>
+  </div>
+
+  <div class="model-grid">
+    <div class="model-card">
+      <span class="badge badge-free">Free</span>
+      <div class="model-icon" style="background:var(--accent-bg)">🧠</div>
+      <h3>Claude Sonnet 4</h3>
+      <div class="provider">by Anthropic</div>
+      <div class="desc">Excellent all-around model with strong reasoning, coding, and analysis. Great balance of speed and quality.</div>
+      <div class="model-specs">
+        <div class="spec"><div class="label">Context Window</div><div class="value">200K tokens</div></div>
+        <div class="spec"><div class="label">Speed</div><div class="value">Fast</div></div>
+        <div class="spec"><div class="label">Coding</div><div class="value">Excellent</div></div>
+        <div class="spec"><div class="label">Reasoning</div><div class="value">Strong</div></div>
+      </div>
+    </div>
+
+    <div class="model-card">
+      <span class="badge badge-pro">Pro</span>
+      <div class="model-icon" style="background:rgba(59,130,246,.1)">🌐</div>
+      <h3>GPT-4o</h3>
+      <div class="provider">by OpenAI</div>
+      <div class="desc">Most capable multimodal model. Excels at complex reasoning, creative writing, and vision tasks.</div>
+      <div class="model-specs">
+        <div class="spec"><div class="label">Context Window</div><div class="value">128K tokens</div></div>
+        <div class="spec"><div class="label">Speed</div><div class="value">Medium</div></div>
+        <div class="spec"><div class="label">Coding</div><div class="value">Excellent</div></div>
+        <div class="spec"><div class="label">Reasoning</div><div class="value">Top-tier</div></div>
+      </div>
+    </div>
+
+    <div class="model-card">
+      <span class="badge badge-free">Free</span>
+      <div class="model-icon" style="background:rgba(34,197,94,.1)">⚡</div>
+      <h3>Claude Haiku</h3>
+      <div class="provider">by Anthropic</div>
+      <div class="desc">Lightning fast responses. Best for quick questions, translations, and simple tasks.</div>
+      <div class="model-specs">
+        <div class="spec"><div class="label">Context Window</div><div class="value">200K tokens</div></div>
+        <div class="spec"><div class="label">Speed</div><div class="value">Blazing</div></div>
+        <div class="spec"><div class="label">Coding</div><div class="value">Good</div></div>
+        <div class="spec"><div class="label">Reasoning</div><div class="value">Good</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="model-detail">
+    <h2>Model <em>Comparison</em></h2>
+    <div class="bench-grid">
+      <div class="bench"><div class="score" style="color:var(--accent)">92</div><div class="name">Sonnet 4 — MMLU</div></div>
+      <div class="bench"><div class="score" style="color:var(--blue)">95</div><div class="name">GPT-4o — MMLU</div></div>
+      <div class="bench"><div class="score" style="color:var(--green)">78</div><div class="name">Haiku — MMLU</div></div>
+      <div class="bench"><div class="score" style="color:var(--purple)">88</div><div class="name">Sonnet 4 — HumanEval</div></div>
+      <div class="bench"><div class="score" style="color:var(--accent)">90</div><div class="name">GPT-4o — HumanEval</div></div>
+      <div class="bench"><div class="score" style="color:var(--green)">72</div><div class="name">Haiku — HumanEval</div></div>
+      <div class="bench"><div class="score" style="color:var(--accent)">94</div><div class="name">Sonnet 4 — GSM8K</div></div>
+      <div class="bench"><div class="score" style="color:var(--blue)">96</div><div class="name">GPT-4o — GSM8K</div></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Model availability</strong> depends on your plan. Free users get Claude Sonnet 4 and Haiku. Pro users get all models including GPT-4o.
+  </div>
+</section>
+
+<footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+</body>
+</html>

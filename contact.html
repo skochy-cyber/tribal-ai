@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Contact</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--r:12px;--shadow:0 4px 20px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+nav{height:64px;display:flex;align-items:center;padding:0 6%;background:rgba(15,14,11,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.nav-links{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-links a{font-size:.82rem;color:var(--ink3);text-decoration:none;font-weight:500;padding:.42rem .9rem;border-radius:10px;transition:.15s}
+.nav-links a:hover{background:var(--bg3);color:var(--ink)}
+.btn-nav{background:var(--accent)!important;color:#fff!important;padding:.42rem 1rem!important}
+.btn-nav:hover{background:var(--accent2)!important}
+
+.page{padding:60px 6% 80px;max-width:900px;margin:0 auto}
+.page-header{text-align:center;margin-bottom:48px}
+.page-header h1{font-family:'Instrument Serif',serif;font-size:clamp(2rem,4vw,2.8rem);font-weight:400;margin-bottom:12px}
+.page-header h1 em{color:var(--accent);font-style:italic}
+.page-header p{color:var(--ink3);font-size:.95rem;max-width:480px;margin:0 auto;line-height:1.6}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:48px}
+.contact-channels{display:flex;flex-direction:column;gap:12px}
+.channel{display:flex;align-items:center;gap:14px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);text-decoration:none;color:var(--ink);transition:.15s}
+.channel:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+.channel-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;flex-shrink:0}
+.channel-info h4{font-size:.9rem;font-weight:600;margin-bottom:2px}
+.channel-info p{font-size:.78rem;color:var(--ink4)}
+
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px}
+.form-card h3{font-family:'Instrument Serif',serif;font-size:1.2rem;font-weight:400;margin-bottom:20px}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:.82rem;font-weight:600;color:var(--ink3);margin-bottom:6px}
+.fg input,.fg textarea,.fg select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--bg3);color:var(--ink);font:inherit;font-size:.88rem;outline:none;transition:.15s}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.fg textarea{min-height:120px;resize:vertical}
+.btn{width:100%;padding:12px;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.success-msg{display:none;text-align:center;padding:40px 20px}
+.success-msg.show{display:block}
+.success-msg .icon{font-size:3rem;margin-bottom:12px}
+.success-msg h3{font-family:'Instrument Serif',serif;font-size:1.3rem;font-weight:400;margin-bottom:8px}
+.success-msg p{font-size:.88rem;color:var(--ink3)}
+
+.faq-section{margin-top:48px}
+.faq-section h2{font-family:'Instrument Serif',serif;font-size:1.4rem;font-weight:400;text-align:center;margin-bottom:24px}
+.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.faq-item:hover{border-color:var(--border2)}
+.faq-item h4{font-size:.88rem;font-weight:600;margin-bottom:4px}
+.faq-item p{font-size:.82rem;color:var(--ink3);line-height:1.6;display:none}
+.faq-item.open p{display:block}
+
+footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);color:var(--ink4);font-size:.74rem;text-align:center}
+@media(max-width:768px){.contact-grid{grid-template-columns:1fr}.page{padding:40px 6% 60px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-links">
+    <a href="/">Chat</a>
+    <a href="login.html">Sign in</a>
+    <a class="btn-nav" href="signup.html">Get Started</a>
+  </div>
+</nav>
+
+<section class="page">
+  <div class="page-header">
+    <h1>Get in <em>Touch</em></h1>
+    <p>Have a question, feedback, or need help? We'd love to hear from you.</p>
+  </div>
+
+  <div class="contact-grid">
+    <div class="contact-channels">
+      <a href="https://wa.me/2349134521198" target="_blank" class="channel">
+        <div class="channel-icon" style="background:rgba(37,211,102,.1)">💬</div>
+        <div class="channel-info"><h4>WhatsApp</h4><p>Chat with us directly</p></div>
+      </a>
+      <a href="mailto:support@tribalai.dev" class="channel">
+        <div class="channel-icon" style="background:rgba(59,130,246,.1)">✉️</div>
+        <div class="channel-info"><h4>Email</h4><p>support@tribalai.dev</p></div>
+      </a>
+      <a href="https://x.com/tribalai" target="_blank" class="channel">
+        <div class="channel-icon" style="background:rgba(168,85,247,.1)">🐦</div>
+        <div class="channel-info"><h4>Twitter / X</h4><p>@tribalai</p></div>
+      </a>
+      <a href="https://github.com/tribalai" target="_blank" class="channel">
+        <div class="channel-icon" style="background:var(--bg3)">🐙</div>
+        <div class="channel-info"><h4>GitHub</h4><p>Open source & issues</p></div>
+      </a>
+    </div>
+
+    <div class="form-card">
+      <h3>Send a Message</h3>
+      <form id="contactForm" onsubmit="handleSubmit(event)">
+        <div class="fg">
+          <label>Name</label>
+          <input type="text" id="name" placeholder="Your name" required>
+        </div>
+        <div class="fg">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="you@example.com" required>
+        </div>
+        <div class="fg">
+          <label>Subject</label>
+          <select id="subject" required>
+            <option value="">Select a topic</option>
+            <option value="support">Technical Support</option>
+            <option value="billing">Billing Question</option>
+            <option value="feature">Feature Request</option>
+            <option value="bug">Bug Report</option>
+            <option value="partnership">Partnership</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Message</label>
+          <textarea id="message" placeholder="How can we help?" required></textarea>
+        </div>
+        <button type="submit" class="btn" id="submitBtn">Send Message</button>
+      </form>
+      <div class="success-msg" id="successMsg">
+        <div class="icon">✅</div>
+        <h3>Message Sent!</h3>
+        <p>We'll get back to you within 24 hours.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="faq-section">
+    <h2>Quick Answers</h2>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <h4>How do I reset my password?</h4>
+      <p>Go to the login page and click "Forgot password". We'll send a reset link to your email.</p>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <h4>Can I get a refund?</h4>
+      <p>Yes! Contact us within 7 days of purchase for a full refund. No questions asked.</p>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <h4>How do I cancel my subscription?</h4>
+      <p>Send us a message on WhatsApp or email and we'll cancel immediately. You keep access until the end of your billing period.</p>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <h4>Do you offer an API?</h4>
+      <p>Yes! Team plan subscribers get API access. Check our API documentation for details.</p>
+    </div>
+  </div>
+</section>
+
+<footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+
+<script>
+function handleSubmit(e){
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  
+  setTimeout(()=>{
+    document.getElementById('contactForm').style.display = 'none';
+    document.getElementById('successMsg').classList.add('show');
+  }, 1500);
+}
+</script>
+</body>
+</html>

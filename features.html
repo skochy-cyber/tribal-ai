@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Features</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--r:12px;--shadow:0 4px 20px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+nav{height:64px;display:flex;align-items:center;padding:0 6%;background:rgba(15,14,11,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.nav-links{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-links a{font-size:.82rem;color:var(--ink3);text-decoration:none;font-weight:500;padding:.42rem .9rem;border-radius:10px;transition:.15s}
+.nav-links a:hover{background:var(--bg3);color:var(--ink)}
+.btn-nav{background:var(--accent)!important;color:#fff!important;padding:.42rem 1rem!important}
+.btn-nav:hover{background:var(--accent2)!important}
+
+.page{padding:60px 6% 80px;max-width:1100px;margin:0 auto}
+.page-header{text-align:center;margin-bottom:60px}
+.page-header h1{font-family:'Instrument Serif',serif;font-size:clamp(2rem,4vw,2.8rem);font-weight:400;margin-bottom:12px}
+.page-header h1 em{color:var(--accent);font-style:italic}
+.page-header p{color:var(--ink3);font-size:.95rem;max-width:500px;margin:0 auto;line-height:1.6}
+
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:60px}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:center;transition:.2s}
+.feature-card:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:var(--border2)}
+.feature-icon{font-size:2.2rem;margin-bottom:14px}
+.feature-card h3{font-size:1rem;font-weight:600;margin-bottom:8px}
+.feature-card p{font-size:.84rem;color:var(--ink3);line-height:1.6}
+
+.comparison{margin-bottom:60px}
+.comparison h2{font-family:'Instrument Serif',serif;font-size:1.6rem;font-weight:400;text-align:center;margin-bottom:32px}
+.comp-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.comp-table th,.comp-table td{padding:14px 20px;text-align:center;font-size:.84rem;border-bottom:1px solid var(--border)}
+.comp-table th{background:var(--bg3);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)}
+.comp-table th:first-child,.comp-table td:first-child{text-align:left;font-weight:500}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table .check{color:var(--green);font-weight:700}
+.comp-table .cross{color:var(--ink4)}
+.comp-table .popular{color:var(--accent);font-weight:700}
+
+.cta{text-align:center;padding:60px 20px;background:var(--surface);border:1px solid var(--border);border-radius:20px}
+.cta h2{font-family:'Instrument Serif',serif;font-size:1.8rem;font-weight:400;margin-bottom:12px}
+.cta h2 em{color:var(--accent);font-style:italic}
+.cta p{color:var(--ink3);font-size:.9rem;margin-bottom:24px}
+.cta .btn{display:inline-block;padding:12px 32px;border-radius:var(--r);font:inherit;font-weight:700;font-size:.9rem;text-decoration:none;transition:.15s;border:none;cursor:pointer}
+.cta .btn-primary{background:var(--accent);color:#fff}
+.cta .btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+
+footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);color:var(--ink4);font-size:.74rem;text-align:center}
+@media(max-width:768px){.feature-grid{grid-template-columns:1fr}.comp-table{font-size:.78rem}.comp-table th,.comp-table td{padding:10px 12px}.page{padding:40px 6% 60px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-links">
+    <a href="/">Chat</a>
+    <a href="login.html">Sign in</a>
+    <a class="btn-nav" href="signup.html">Get Started</a>
+  </div>
+</nav>
+
+<section class="page">
+  <div class="page-header">
+    <h1>Powerful <em>Features</em></h1>
+    <p>Everything you need to chat, code, create, and collaborate with AI.</p>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3>Multi-Model AI</h3>
+      <p>Switch between Claude Sonnet 4, GPT-4o, and Claude Haiku. Pick the best model for each task.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💻</div>
+      <h3>Code Execution</h3>
+      <p>Run Python, JavaScript, and Bash code directly in the chat. See output instantly.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <h3>Image Generation</h3>
+      <p>Create stunning images with AI. Describe what you want and get it in seconds.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📁</div>
+      <h3>File Analysis</h3>
+      <p>Upload images, PDFs, and documents. AI analyzes and answers questions about them.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌍</div>
+      <h3>Translation</h3>
+      <p>Translate text between 12+ languages including Yoruba, Igbo, Hausa, and more.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔊</div>
+      <h3>Text-to-Speech</h3>
+      <p>Have AI responses read aloud. Perfect for learning on the go.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👥</div>
+      <h3>Team Collaboration</h3>
+      <p>Create teams, invite members, share conversations, and collaborate in real-time.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Analytics</h3>
+      <p>Track your usage, model performance, and monthly trends with detailed charts.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>API Access</h3>
+      <p>Integrate Tribal AI into your apps with our REST API. Full documentation included.</p>
+    </div>
+  </div>
+
+  <div class="comparison">
+    <h2>Plan Comparison</h2>
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Free</th>
+          <th class="popular">Pro ⭐</th>
+          <th>Team</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Messages per month</td><td>50</td><td class="popular">Unlimited</td><td>Unlimited</td></tr>
+        <tr><td>AI Models</td><td>Claude Sonnet 4</td><td class="popular">All Models</td><td>All Models</td></tr>
+        <tr><td>Response Speed</td><td>Standard</td><td class="popular">Priority</td><td>Priority</td></tr>
+        <tr><td>Chat History</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Code Execution</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>File Analysis</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Image Generation</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Text-to-Speech</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Translation</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Team Members</td><td class="cross">—</td><td class="cross">—</td><td>Up to 10</td></tr>
+        <tr><td>Admin Dashboard</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+        <tr><td>API Access</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+        <tr><td>Priority Support</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Custom Instructions</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td><strong>Price</strong></td><td><strong>₦0</strong></td><td class="popular"><strong>₦2,500/mo</strong></td><td><strong>₦15,000/mo</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cta">
+    <h2>Ready to <em>get started</em>?</h2>
+    <p>Join thousands of users already using Tribal AI.</p>
+    <a class="btn btn-primary" href="signup.html">Create Free Account</a>
+  </div>
+</section>
+
+<footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+</body>
+</html>
