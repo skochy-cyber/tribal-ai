@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — API Documentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--blue:#3b82f6;--red:#ef4444;--r:12px;--shadow:0 4px 20px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+nav{height:64px;display:flex;align-items:center;padding:0 6%;background:rgba(15,14,11,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.nav-links{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-links a{font-size:.82rem;color:var(--ink3);text-decoration:none;font-weight:500;padding:.42rem .9rem;border-radius:10px;transition:.15s}
+.nav-links a:hover{background:var(--bg3);color:var(--ink)}
+.btn-nav{background:var(--accent)!important;color:#fff!important;padding:.42rem 1rem!important}
+.btn-nav:hover{background:var(--accent2)!important}
+
+.layout{display:flex;max-width:1200px;margin:0 auto;min-height:calc(100vh - 64px)}
+.sidebar{width:240px;border-right:1px solid var(--border);padding:24px 16px;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;flex-shrink:0}
+.sidebar h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink4);margin:16px 0 8px;font-weight:600}
+.sidebar a{display:block;font-size:.84rem;color:var(--ink3);text-decoration:none;padding:6px 10px;border-radius:8px;transition:.1s}
+.sidebar a:hover{background:var(--bg3);color:var(--ink)}
+.sidebar a.active{background:var(--accent-bg);color:var(--accent)}
+
+.content{flex:1;padding:40px 48px 80px;min-width:0}
+.content h1{font-family:'Instrument Serif',serif;font-size:2rem;font-weight:400;margin-bottom:8px}
+.content h1 em{color:var(--accent);font-style:italic}
+.content>p{color:var(--ink3);font-size:.9rem;line-height:1.6;margin-bottom:32px}
+
+.endpoint{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px}
+.endpoint-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.method{font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:6px}
+.method-get{background:rgba(34,197,94,.1);color:var(--green)}
+.method-post{background:rgba(59,130,246,.1);color:var(--blue)}
+.method-put{background:rgba(245,158,11,.1);color:#f59e0b}
+.method-delete{background:rgba(239,68,68,.1);color:var(--red)}
+.endpoint-path{font-family:'JetBrains Mono',monospace;font-size:.88rem;color:var(--ink2)}
+.endpoint-desc{font-size:.84rem;color:var(--ink3);margin-bottom:16px;line-height:1.6}
+
+.code-block{position:relative;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;overflow-x:auto;margin-bottom:12px}
+.code-block code{color:var(--ink2)}
+.code-label{font-size:.72rem;font-weight:600;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:.7rem;color:var(--ink3);cursor:pointer;transition:.15s}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.params-table{width:100%;border-collapse:collapse;margin-top:12px}
+.params-table th{text-align:left;font-size:.76rem;font-weight:600;color:var(--ink4);padding:8px 12px;border-bottom:1px solid var(--border)}
+.params-table td{padding:8px 12px;font-size:.82rem;border-bottom:1px solid var(--border)}
+.params-table td:first-child{font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:500}
+.params-table .required{color:var(--red);font-size:.72rem}
+
+.section-title{font-family:'Instrument Serif',serif;font-size:1.4rem;font-weight:400;margin:40px 0 20px;padding-top:20px;border-top:1px solid var(--border)}
+
+@media(max-width:900px){.sidebar{display:none}.content{padding:24px 20px 60px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-links">
+    <a href="/">Chat</a>
+    <a href="login.html">Sign in</a>
+    <a class="btn-nav" href="signup.html">Get Started</a>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <h4>Getting Started</h4>
+    <a href="#overview" class="active">Overview</a>
+    <a href="#auth">Authentication</a>
+    <a href="#rate-limits">Rate Limits</a>
+    <h4>Endpoints</h4>
+    <a href="#chat">POST /api/chat</a>
+    <a href="#chats">GET /api/chats</a>
+    <a href="#models">GET /api/models</a>
+    <a href="#upload">POST /api/upload</a>
+    <a href="#templates">GET /api/templates</a>
+    <a href="#analytics">GET /api/analytics</a>
+    <h4>Resources</h4>
+    <a href="#errors">Error Codes</a>
+    <a href="#sdks">SDKs</a>
+  </aside>
+
+  <main class="content">
+    <h1>API <em>Documentation</em></h1>
+    <p>Integrate Tribal AI into your apps. Access chat, models, templates, and analytics via our REST API.</p>
+
+    <div class="section-title" id="overview">Overview</div>
+    <p style="color:var(--ink3);font-size:.88rem;line-height:1.7;margin-bottom:16px">
+      The Tribal AI API uses REST endpoints over HTTPS. All requests require an API key passed via the <code style="font-family:'JetBrains Mono',monospace;background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:.84em">Authorization</code> header. Responses are JSON.
+    </p>
+    <div class="code-block"><code>Base URL: https://api.tribalai.dev/v1</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+
+    <div class="section-title" id="auth">Authentication</div>
+    <p style="color:var(--ink3);font-size:.88rem;line-height:1.7;margin-bottom:16px">
+      Include your API key in the <code style="font-family:'JetBrains Mono',monospace;background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:.84em">Authorization</code> header as a Bearer token.
+    </p>
+    <div class="code-label">Request Header</div>
+    <div class="code-block"><code>Authorization: Bearer tribal_sk_your_api_key_here</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+
+    <div class="section-title" id="rate-limits">Rate Limits</div>
+    <table class="params-table">
+      <thead><tr><th>Plan</th><th>Requests/min</th><th>Messages/day</th></tr></thead>
+      <tbody>
+        <tr><td>Free</td><td>10</td><td>50</td></tr>
+        <tr><td>Pro</td><td>60</td><td>Unlimited</td></tr>
+        <tr><td>Team</td><td>120</td><td>Unlimited</td></tr>
+      </tbody>
+    </table>
+
+    <div class="section-title" id="chat">Chat Completion</div>
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">/api/chat</span>
+      </div>
+      <div class="endpoint-desc">Send a message and receive an AI response. Optionally specify a chat ID to continue an existing conversation.</div>
+      <table class="params-table">
+        <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>message</td><td>string</td><td><span class="required">Required</span></td><td>The user message</td></tr>
+          <tr><td>chatId</td><td>string</td><td>Optional</td><td>Continue an existing chat</td></tr>
+          <tr><td>model</td><td>string</td><td>Optional</td><td>Override default model</td></tr>
+        </tbody>
+      </table>
+      <div class="code-label" style="margin-top:16px">Example</div>
+      <div class="code-block"><code>curl -X POST https://api.tribalai.dev/v1/chat \
+  -H "Authorization: Bearer tribal_sk_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Explain quantum computing", "model": "claude-sonnet-4"}'</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    </div>
+
+    <div class="section-title" id="chats">List Chats</div>
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/chats</span>
+      </div>
+      <div class="endpoint-desc">Retrieve all chat conversations for the authenticated user.</div>
+      <div class="code-label">Response</div>
+      <div class="code-block"><code>[
+  {
+    "_id": "chat_abc123",
+    "title": "Quantum Computing Basics",
+    "createdAt": "2026-07-21T10:30:00Z",
+    "messageCount": 12
+  }
+]</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    </div>
+
+    <div class="section-title" id="models">List Models</div>
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/models</span>
+      </div>
+      <div class="endpoint-desc">Get available AI models and the user's current selection.</div>
+    </div>
+
+    <div class="section-title" id="upload">File Upload</div>
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">/api/upload</span>
+      </div>
+      <div class="endpoint-desc">Upload files (images, PDFs, code) for AI analysis. Max 10MB per file.</div>
+      <table class="params-table">
+        <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>message</td><td>string</td><td>Optional</td><td>Context message for the upload</td></tr>
+          <tr><td>files</td><td>array</td><td><span class="required">Required</span></td><td>Array of file objects with name, type, b64</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" id="templates">Templates</div>
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/templates</span>
+      </div>
+      <div class="endpoint-desc">Browse available prompt templates. Filter by category.</div>
+    </div>
+
+    <div class="section-title" id="analytics">Analytics</div>
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/analytics</span>
+      </div>
+      <div class="endpoint-desc">Get usage analytics including message counts, model breakdown, and trends.</div>
+    </div>
+
+    <div class="section-title" id="errors">Error Codes</div>
+    <table class="params-table">
+      <thead><tr><th>Code</th><th>Status</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>401</td><td>Unauthorized</td><td>Invalid or missing API key</td></tr>
+        <tr><td>403</td><td>Forbidden</td><td>Plan does not include this feature</td></tr>
+        <tr><td>429</td><td>Rate Limited</td><td>Too many requests, slow down</td></tr>
+        <tr><td>500</td><td>Server Error</td><td>Internal error, retry later</td></tr>
+      </tbody>
+    </table>
+
+    <div class="section-title" id="sdks">SDKs & Libraries</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px">
+      <div class="endpoint" style="padding:16px;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:8px">📦</div>
+        <div style="font-weight:600;font-size:.88rem">Python</div>
+        <div style="font-size:.78rem;color:var(--ink4)">pip install tribal-ai</div>
+      </div>
+      <div class="endpoint" style="padding:16px;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:8px">📦</div>
+        <div style="font-weight:600;font-size:.88rem">Node.js</div>
+        <div style="font-size:.78rem;color:var(--ink4)">npm install tribal-ai</div>
+      </div>
+      <div class="endpoint" style="padding:16px;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:8px">📦</div>
+        <div style="font-weight:600;font-size:.88rem">Go</div>
+        <div style="font-size:.78rem;color:var(--ink4)">go get tribal-ai</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer style="border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);color:var(--ink4);font-size:.74rem;text-align:center">© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+
+<script>
+function copyCode(btn){
+  const code = btn.parentElement.querySelector('code');
+  navigator.clipboard.writeText(code.textContent).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);});
+}
+
+document.querySelectorAll('.sidebar a').forEach(a=>{
+  a.addEventListener('click',()=>{
+    document.querySelectorAll('.sidebar a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

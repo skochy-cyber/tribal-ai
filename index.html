@@ -1295,6 +1295,50 @@ async function createBranch() {
     else toast(data.error || 'Failed', 'err');
   } catch { toast('Failed', 'err'); }
 }
+
+// ── F11: PDF Export ────────────────────────────────────────────────────────
+async function exportAsPDF() {
+  if (!token) return showAuth('login');
+  if (!activeChatId) { toast('Open a chat first', 'err'); return; }
+  try {
+    const r = await fetch(`${API}/api/chats/${activeChatId}/export?format=txt`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const text = await r.text();
+    const w = window.open('', '_blank');
+    w.document.write(`<html><head><title>Chat Export</title><style>body{font-family:sans-serif;padding:40px;line-height:1.6}pre{white-space:pre-wrap;font-size:.9rem}</style></head><body><h1>Tribal AI — Chat Export</h1><pre>${text}</pre></body></html>`);
+    w.document.close(); w.print();
+    toast('PDF export ready', 'ok');
+  } catch { toast('Export failed', 'err'); }
+}
+
+// ── F35: Onboarding ────────────────────────────────────────────────────────
+function showOnboarding() { document.getElementById('onboardingModal').classList.add('open'); }
+function closeOnboarding() {
+  document.getElementById('onboardingModal').classList.remove('open');
+  localStorage.setItem('ta_onboarded', '1');
+}
+if (!localStorage.getItem('ta_onboarded') && !token) { setTimeout(showOnboarding, 1500); }
+
+// ── F36: Usage Alert Check ─────────────────────────────────────────────────
+async function checkUsageAlerts() {
+  if (!token) return;
+  try {
+    const r = await fetch(`${API}/api/alerts`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) {
+      const data = await r.json();
+      if (data.alerts?.length) {
+        data.alerts.forEach(a => toast(a.message, a.level === 'critical' ? 'err' : 'ok'));
+      }
+    }
+  } catch {}
+}
+if (token) setTimeout(checkUsageAlerts, 3000);
+
+// ── GDPR Export ────────────────────────────────────────────────────────────
+function exportAllData() {
+  if (!token) return showAuth('login');
+  window.open(`${API}/api/export`, '_blank');
+  toast('Data export started', 'ok');
+}
 </script>
 </body>
 </html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Referrals</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--r:12px;--shadow:0 4px 20px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+nav{height:64px;display:flex;align-items:center;padding:0 6%;background:rgba(15,14,11,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.nav-links{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-links a{font-size:.82rem;color:var(--ink3);text-decoration:none;font-weight:500;padding:.42rem .9rem;border-radius:10px;transition:.15s}
+.nav-links a:hover{background:var(--bg3);color:var(--ink)}
+.btn-nav{background:var(--accent)!important;color:#fff!important;padding:.42rem 1rem!important}
+.btn-nav:hover{background:var(--accent2)!important}
+
+.page{padding:60px 6% 80px;max-width:800px;margin:0 auto}
+.page-header{text-align:center;margin-bottom:48px}
+.page-header h1{font-family:'Instrument Serif',serif;font-size:clamp(2rem,4vw,2.8rem);font-weight:400;margin-bottom:12px}
+.page-header h1 em{color:var(--accent);font-style:italic}
+.page-header p{color:var(--ink3);font-size:.95rem;max-width:480px;margin:0 auto;line-height:1.6}
+
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center}
+.stat-card .value{font-family:'Instrument Serif',serif;font-size:2.4rem;font-weight:400;margin-bottom:4px}
+.stat-card .label{font-size:.82rem;color:var(--ink3)}
+
+.code-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:32px;text-align:center}
+.code-section h3{font-size:1rem;font-weight:600;margin-bottom:8px}
+.code-section p{font-size:.84rem;color:var(--ink3);margin-bottom:20px}
+.code-display{display:flex;gap:12px;justify-content:center;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.code-box{font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:700;letter-spacing:.15em;padding:14px 28px;background:var(--bg3);border:2px dashed var(--border2);border-radius:var(--r);color:var(--accent);cursor:pointer;transition:.15s}
+.code-box:hover{border-color:var(--accent);background:var(--accent-bg)}
+
+.share-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.share-btn{display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--r);font:inherit;font-size:.84rem;font-weight:600;cursor:pointer;border:none;transition:.15s}
+.share-btn:hover{transform:translateY(-1px)}
+.share-btn.twitter{background:#1da1f2;color:#fff}
+.share-btn.whatsapp{background:#25d366;color:#fff}
+.share-btn.copy{background:var(--bg3);color:var(--ink);border:1px solid var(--border)}
+
+.how-it-works{margin-top:48px}
+.how-it-works h2{font-family:'Instrument Serif',serif;font-size:1.6rem;font-weight:400;text-align:center;margin-bottom:32px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.step{text-align:center;padding:20px}
+.step-num{width:48px;height:48px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:inline-grid;place-items:center;font-family:'Instrument Serif',serif;font-size:1.4rem;font-weight:700;margin-bottom:12px}
+.step h4{font-size:.92rem;font-weight:600;margin-bottom:6px}
+.step p{font-size:.82rem;color:var(--ink3);line-height:1.5}
+
+.recent-referrals{margin-top:48px}
+.recent-referrals h3{font-size:1rem;font-weight:600;margin-bottom:16px}
+.ref-list{display:flex;flex-direction:column;gap:2px}
+.ref-item{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px}
+.ref-item .avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.78rem;font-weight:600;flex-shrink:0}
+.ref-item .info{flex:1}
+.ref-item .name{font-size:.84rem;font-weight:600}
+.ref-item .date{font-size:.72rem;color:var(--ink4)}
+.ref-item .bonus{font-size:.82rem;font-weight:600;color:var(--green)}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 20px;font-size:.84rem;color:var(--ink2);box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideIn .3s ease;z-index:300}
+.toast.ok{border-color:rgba(34,197,94,.3)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:768px){.stats-grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.page{padding:40px 6% 60px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-links">
+    <a href="/">Chat</a>
+    <a href="login.html">Sign in</a>
+    <a class="btn-nav" href="signup.html">Get Started</a>
+  </div>
+</nav>
+
+<section class="page">
+  <div class="page-header">
+    <h1>Refer & <em>Earn</em></h1>
+    <p>Share Tribal AI with friends. When they sign up, you both get 10 bonus messages.</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="value">12</div>
+      <div class="label">Friends Referred</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" style="color:var(--green)">120</div>
+      <div class="label">Bonus Messages Earned</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">3</div>
+      <div class="label">Converted to Pro</div>
+    </div>
+  </div>
+
+  <div class="code-section">
+    <h3>Your Referral Code</h3>
+    <p>Share this code with friends. They enter it when signing up.</p>
+    <div class="code-display">
+      <div class="code-box" id="refCode" onclick="copyCode()">TRIBAL-4X9K</div>
+    </div>
+    <div class="share-buttons">
+      <button class="share-btn whatsapp" onclick="shareWhatsApp()">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Share on WhatsApp
+      </button>
+      <button class="share-btn twitter" onclick="shareTwitter()">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Share on X
+      </button>
+      <button class="share-btn copy" onclick="copyCode()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy Code
+      </button>
+    </div>
+  </div>
+
+  <div class="how-it-works">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h4>Share your code</h4>
+        <p>Send your unique referral code to friends via WhatsApp, X, or any channel.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h4>Friends sign up</h4>
+        <p>They enter your code during signup and get 10 bonus messages instantly.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h4>You earn rewards</h4>
+        <p>You get 10 bonus messages for each referral. No limit on referrals.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="recent-referrals">
+    <h3>Recent Referrals</h3>
+    <div class="ref-list">
+      <div class="ref-item">
+        <div class="avatar" style="background:var(--green)">A</div>
+        <div class="info"><div class="name">Adebayo K.</div><div class="date">2 days ago</div></div>
+        <div class="bonus">+10 msgs</div>
+      </div>
+      <div class="ref-item">
+        <div class="avatar" style="background:#3b82f6">F</div>
+        <div class="info"><div class="name">Funke A.</div><div class="date">5 days ago</div></div>
+        <div class="bonus">+10 msgs</div>
+      </div>
+      <div class="ref-item">
+        <div class="avatar" style="background:#a855f7">O</div>
+        <div class="info"><div class="name">Oluwaseun B.</div><div class="date">1 week ago</div></div>
+        <div class="bonus">+10 msgs</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+
+<script>
+const refCode = 'TRIBAL-4X9K';
+const shareUrl = window.location.origin + '/signup?ref=' + refCode;
+
+function copyCode(){
+  navigator.clipboard.writeText(refCode).then(()=>toast('Referral code copied!'));
+}
+
+function shareWhatsApp(){
+  window.open(`https://wa.me/?text=${encodeURIComponent('Join Tribal AI — Chat, Code, Create with AI! Use my code: '+refCode+'\n'+shareUrl)}`,'_blank');
+}
+
+function shareTwitter(){
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('Just discovered Tribal AI — an amazing AI platform! Use my referral code '+refCode+' to get 10 bonus messages 🚀\n'+shareUrl)}`,'_blank');
+}
+
+function toast(msg){
+  const el=document.createElement('div');el.className='toast ok';el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},3000);
+}
+</script>
+</body>
+</html>

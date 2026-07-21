@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Changelog</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--blue:#3b82f6;--purple:#a855f7;--r:12px;--shadow:0 4px 20px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+nav{height:64px;display:flex;align-items:center;padding:0 6%;background:rgba(15,14,11,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.nav-links{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-links a{font-size:.82rem;color:var(--ink3);text-decoration:none;font-weight:500;padding:.42rem .9rem;border-radius:10px;transition:.15s}
+.nav-links a:hover{background:var(--bg3);color:var(--ink)}
+.btn-nav{background:var(--accent)!important;color:#fff!important;padding:.42rem 1rem!important}
+.btn-nav:hover{background:var(--accent2)!important}
+
+.page{padding:60px 6% 80px;max-width:800px;margin:0 auto}
+.page-header{text-align:center;margin-bottom:60px}
+.page-header h1{font-family:'Instrument Serif',serif;font-size:clamp(2rem,4vw,2.8rem);font-weight:400;margin-bottom:12px}
+.page-header h1 em{color:var(--accent);font-style:italic}
+.page-header p{color:var(--ink3);font-size:.95rem;max-width:480px;margin:0 auto;line-height:1.6}
+
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:"";position:absolute;left:7px;top:0;bottom:0;width:2px;background:var(--border)}
+.release{position:relative;margin-bottom:48px}
+.release-dot{position:absolute;left:-29px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--accent);background:var(--bg)}
+.release-dot.latest{background:var(--accent);box-shadow:0 0 0 4px var(--accent-bg)}
+.release-header{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.release-version{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--ink)}
+.release-date{font-size:.82rem;color:var(--ink4)}
+.release-tag{font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:12px;text-transform:uppercase;letter-spacing:.03em}
+.tag-feature{background:rgba(59,130,246,.1);color:var(--blue)}
+.tag-fix{background:rgba(239,68,68,.1);color:#ef4444}
+.tag-improve{background:rgba(168,85,247,.1);color:var(--purple)}
+.tag-breaking{background:rgba(245,158,11,.1);color:#f59e0b}
+
+.release-body{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 24px}
+.release-body h3{font-size:.92rem;font-weight:600;margin-bottom:10px}
+.release-body ul{list-style:none;margin-bottom:12px}
+.release-body li{font-size:.84rem;color:var(--ink3);line-height:1.6;padding:4px 0;display:flex;gap:8px;align-items:flex-start}
+.release-body li::before{content:"→";color:var(--accent);font-weight:700;flex-shrink:0}
+
+footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);color:var(--ink4);font-size:.74rem;text-align:center}
+@media(max-width:768px){.timeline{padding-left:24px}.release-header{flex-direction:column;gap:6px}.page{padding:40px 6% 60px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-links">
+    <a href="/">Chat</a>
+    <a href="login.html">Sign in</a>
+    <a class="btn-nav" href="signup.html">Get Started</a>
+  </div>
+</nav>
+
+<section class="page">
+  <div class="page-header">
+    <h1>Changelog</h1>
+    <p>What's new in Tribal AI. Every update, improvement, and fix.</p>
+  </div>
+
+  <div class="timeline">
+    <div class="release">
+      <div class="release-dot latest"></div>
+      <div class="release-header">
+        <span class="release-version">v2.4.0</span>
+        <span class="release-date">July 21, 2026</span>
+        <span class="release-tag tag-feature">Feature</span>
+      </div>
+      <div class="release-body">
+        <h3>Multi-Model Support & Team Features</h3>
+        <ul>
+          <li>Switch between Claude Sonnet 4, GPT-4o, and Claude Haiku</li>
+          <li>Team management: invite members, assign roles</li>
+          <li>Shared team conversations with real-time sync</li>
+          <li>Usage analytics dashboard with charts</li>
+          <li>API documentation for developers</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2.3.2</span>
+        <span class="release-date">July 10, 2026</span>
+        <span class="release-tag tag-fix">Fix</span>
+      </div>
+      <div class="release-body">
+        <h3>Stability Improvements</h3>
+        <ul>
+          <li>Fixed chat history not loading on slow connections</li>
+          <li>Resolved file upload crash for large PDFs</li>
+          <li>Fixed Google login redirect loop on mobile</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2.3.0</span>
+        <span class="release-date">June 28, 2026</span>
+        <span class="release-tag tag-feature">Feature</span>
+      </div>
+      <div class="release-body">
+        <h3>Code Execution & Image Generation</h3>
+        <ul>
+          <li>Run Python, JavaScript, and Bash code in the chat</li>
+          <li>AI image generation with DALL·E integration</li>
+          <li>File analysis: upload images and PDFs for AI review</li>
+          <li>Text-to-speech for AI responses</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2.2.0</span>
+        <span class="release-date">June 15, 2026</span>
+        <span class="release-tag tag-improve">Improvement</span>
+      </div>
+      <div class="release-body">
+        <h3>Performance & UX Upgrades</h3>
+        <ul>
+          <li>3x faster message rendering</li>
+          <li>Keyboard shortcuts: Ctrl+N (new chat), Ctrl+K (focus input)</li>
+          <li>Dark/light theme toggle with persistence</li>
+          <li>Chat export in TXT and JSON formats</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2.1.0</span>
+        <span class="release-date">May 30, 2026</span>
+        <span class="release-tag tag-feature">Feature</span>
+      </div>
+      <div class="release-body">
+        <h3>Referral System & Templates</h3>
+        <ul>
+          <li>Referral codes: invite friends, earn bonus messages</li>
+          <li>Prompt templates library with categories</li>
+          <li>Chat sharing via public links</li>
+          <li>WhatsApp payment integration</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2.0.0</span>
+        <span class="release-date">May 1, 2026</span>
+        <span class="release-tag tag-breaking">Launch</span>
+      </div>
+      <div class="release-body">
+        <h3>Tribal AI v2 — Official Launch</h3>
+        <ul>
+          <li>Complete redesign with dark theme</li>
+          <li>Google social login</li>
+          <li>Chat history with folders</li>
+          <li>Free tier: 50 messages/month</li>
+          <li>Pro plan with unlimited access</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v1.0.0</span>
+        <span class="release-date">April 10, 2026</span>
+        <span class="release-tag tag-feature">Beta</span>
+      </div>
+      <div class="release-body">
+        <h3>First Beta Release</h3>
+        <ul>
+          <li>Basic AI chat with Claude</li>
+          <li>User registration and login</li>
+          <li>Simple chat interface</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+</body>
+</html>

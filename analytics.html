@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--blue:#3b82f6;--purple:#a855f7;--r:12px;--shadow:0 4px 20px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+nav{height:64px;display:flex;align-items:center;padding:0 6%;background:rgba(15,14,11,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.nav-links{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-links a{font-size:.82rem;color:var(--ink3);text-decoration:none;font-weight:500;padding:.42rem .9rem;border-radius:10px;transition:.15s}
+.nav-links a:hover{background:var(--bg3);color:var(--ink)}
+.btn-nav{background:var(--accent)!important;color:#fff!important;padding:.42rem 1rem!important}
+.btn-nav:hover{background:var(--accent2)!important}
+
+.page{padding:60px 6% 80px;max-width:1100px;margin:0 auto}
+.page-header{margin-bottom:40px}
+.page-header h1{font-family:'Instrument Serif',serif;font-size:clamp(1.8rem,3vw,2.4rem);font-weight:400;margin-bottom:8px}
+.page-header h1 em{color:var(--accent);font-style:italic}
+.page-header p{color:var(--ink3);font-size:.9rem;line-height:1.6}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px}
+.stat-card .label{font-size:.78rem;color:var(--ink4);margin-bottom:4px}
+.stat-card .value{font-family:'Instrument Serif',serif;font-size:1.8rem;font-weight:400}
+.stat-card .change{font-size:.72rem;margin-top:4px}
+.stat-card .change.up{color:var(--green)}
+.stat-card .change.down{color:#ef4444}
+
+.chart-row{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:32px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px}
+.chart-card h3{font-size:.92rem;font-weight:600;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.chart-card h3 .dot{width:8px;height:8px;border-radius:50%}
+
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:160px;padding-top:20px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{border-radius:6px 6px 0 0;min-height:4px;width:100%;transition:.3s}
+.bar-label{font-size:.68rem;color:var(--ink4)}
+.bar-val{font-size:.68rem;color:var(--ink3);font-weight:600}
+
+.donut-container{display:flex;flex-direction:column;align-items:center;gap:16px}
+.donut{width:120px;height:120px;border-radius:50%;position:relative}
+.donut-center{position:absolute;inset:20px;border-radius:50%;background:var(--surface);display:grid;place-items:center}
+.donut-center span{font-family:'Instrument Serif',serif;font-size:1.4rem}
+.legend{display:flex;flex-direction:column;gap:8px;width:100%}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:.82rem}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+.trend-table{width:100%;border-collapse:collapse}
+.trend-table th{text-align:left;font-size:.78rem;font-weight:600;color:var(--ink4);padding:10px 12px;border-bottom:1px solid var(--border)}
+.trend-table td{padding:10px 12px;font-size:.84rem;border-bottom:1px solid var(--border)}
+.trend-table tr:last-child td{border-bottom:none}
+
+.footer-note{text-align:center;color:var(--ink4);font-size:.78rem;margin-top:40px}
+
+@media(max-width:768px){.stats-grid{grid-template-columns:repeat(2,1fr)}.chart-row{grid-template-columns:1fr}.page{padding:40px 6% 60px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-links">
+    <a href="/">Chat</a>
+    <a href="login.html">Sign in</a>
+    <a class="btn-nav" href="signup.html">Get Started</a>
+  </div>
+</nav>
+
+<section class="page">
+  <div class="page-header">
+    <h1>Usage <em>Analytics</em></h1>
+    <p>Track your AI usage, model performance, and monthly trends.</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">Messages This Month</div>
+      <div class="value">247</div>
+      <div class="change up">↑ 18% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Total Messages</div>
+      <div class="value">1,842</div>
+      <div class="change up">↑ 12% all time</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Active Chats</div>
+      <div class="value">38</div>
+      <div class="change up">↑ 5 new this week</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Avg Response Time</div>
+      <div class="value">1.2s</div>
+      <div class="change up">↓ 0.3s faster</div>
+    </div>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-card">
+      <h3><span class="dot" style="background:var(--accent)"></span>Monthly Messages</h3>
+      <div class="bar-chart" id="barChart"></div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot" style="background:var(--blue)"></span>Model Breakdown</h3>
+      <div class="donut-container">
+        <div class="donut" id="donut"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h3><span class="dot" style="background:var(--green)"></span>Daily Activity (Last 14 Days)</h3>
+    <table class="trend-table">
+      <thead><tr><th>Date</th><th>Messages</th><th>Chats</th><th>Top Model</th><th>Tokens</th></tr></thead>
+      <tbody id="trendBody"></tbody>
+    </table>
+  </div>
+
+  <div class="footer-note">Analytics update in real-time. Data is retained for 90 days.</div>
+</section>
+
+<footer style="border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);color:var(--ink4);font-size:.74rem;text-align:center">© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+
+<script>
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const usageData = [45,78,120,156,189,230,247,210,195,260,285,310];
+const maxUsage = Math.max(...usageData);
+
+const barEl = document.getElementById('barChart');
+barEl.innerHTML = usageData.map((v,i) => {
+  const h = (v/maxUsage)*140;
+  const isCurrent = i === 6;
+  const color = isCurrent ? 'var(--accent)' : 'var(--bg3)';
+  return `<div class="bar-col"><div class="bar-val">${v}</div><div class="bar" style="height:${h}px;background:${color}"></div><div class="bar-label">${months[i]}</div></div>`;
+}).join('');
+
+const models = [{name:'Claude Sonnet 4',pct:55,color:'var(--accent)'},{name:'GPT-4o',pct:30,color:'var(--blue)'},{name:'Claude Haiku',pct:15,color:'var(--green)'}];
+const donut = document.getElementById('donut');
+let conic = '';
+let cum = 0;
+models.forEach(m => { conic += `${m.color} ${cum}% ${cum+m.pct}%, `; cum += m.pct; });
+donut.style.background = `conic-gradient(${conic.slice(0,-2)})`;
+donut.innerHTML = '<div class="donut-center"><span>1,842</span></div>';
+document.getElementById('legend').innerHTML = models.map(m => `<div class="legend-item"><div class="legend-dot" style="background:${m.color}"></div>${m.name} — ${m.pct}%</div>`).join('');
+
+const dailyData = [];
+for(let i=13;i>=0;i--){
+  const d = new Date(); d.setDate(d.getDate()-i);
+  const msgs = Math.floor(Math.random()*30)+5;
+  const chats = Math.floor(Math.random()*8)+1;
+  const tokens = msgs * (Math.floor(Math.random()*400)+200);
+  dailyData.push({date:d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),msgs,chats,model:'Claude Sonnet 4',tokens});
+}
+document.getElementById('trendBody').innerHTML = dailyData.map(d => `<tr><td>${d.date}</td><td>${d.msgs}</td><td>${d.chats}</td><td>${d.model}</td><td>${d.tokens.toLocaleString()}</td></tr>`).join('');
+</script>
+</body>
+</html>
