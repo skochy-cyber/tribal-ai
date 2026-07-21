@@ -1621,6 +1621,213 @@ app.post('/api/admin/backups', authMw, adminMw, (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// SMART SUGGESTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/suggestions', authMw, async (req, res) => {
+  const { message, response } = req.body;
+  // Generate contextual follow-up suggestions
+  const suggestions = [];
+  const lowerMsg = (message || '').toLowerCase();
+  const lowerResp = (response || '').toLowerCase();
+
+  if (lowerMsg.includes('code') || lowerResp.includes('function') || lowerResp.includes('def ') || lowerResp.includes('const ')) {
+    suggestions.push('Explain this code line by line', 'Can you optimize this?', 'Add error handling');
+  } else if (lowerMsg.includes('write') || lowerMsg.includes('create') || lowerMsg.includes('draft')) {
+    suggestions.push('Make it shorter', 'Make it more formal', 'Translate to another language');
+  } else if (lowerMsg.includes('explain') || lowerMsg.includes('what is') || lowerMsg.includes('how does')) {
+    suggestions.push('Give me an example', 'Go deeper', 'How is this used in practice?');
+  } else if (lowerResp.includes('\n```') || lowerResp.includes('```')) {
+    suggestions.push('Run this code', 'Explain each line', 'Write tests for this');
+  } else {
+    suggestions.push('Tell me more', 'Give an example', 'What are the alternatives?');
+  }
+  res.json({ suggestions: suggestions.slice(0, 3) });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WEB SEARCH
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/web-search', authMw, async (req, res) => {
+  const { query } = req.body;
+  if (!query) return res.status(400).json({ error: 'Query required' });
+  try {
+    const r = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`);
+    const data = await r.json();
+    const results = [];
+    if (data.AbstractText) results.push({ title: data.Heading, snippet: data.AbstractText, url: data.AbstractURL });
+    (data.RelatedTopics || []).slice(0, 5).forEach(t => {
+      if (t.Text && t.FirstURL) results.push({ title: t.Text.slice(0, 80), snippet: t.Text, url: t.FirstURL });
+    });
+    res.json({ results, query });
+  } catch (e) { res.status(500).json({ error: 'Search failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PERSONAS
+// ══════════════════════════════════════════════════════════════════════════════
+const defaultPersonas = [
+  { id: 'default', name: 'Tribal AI', avatar: '🤖', systemPrompt: 'You are Tribal AI, a helpful AI assistant.', category: 'general' },
+  { id: 'coder', name: 'Code Assistant', avatar: '💻', systemPrompt: 'You are an expert programmer. Help users write, debug, and optimize code. Always include working code examples.', category: 'coding' },
+  { id: 'writer', name: 'Creative Writer', avatar: '✍️', systemPrompt: 'You are a talented creative writer. Help users craft stories, essays, and creative content with vivid language.', category: 'creative' },
+  { id: 'tutor', name: 'Math Tutor', avatar: '🧮', systemPrompt: 'You are a patient math tutor. Explain concepts step by step. Use examples. Make math accessible and fun.', category: 'education' },
+  { id: 'analyst', name: 'Data Analyst', avatar: '📊', systemPrompt: 'You are a data analyst expert. Help users analyze data, create charts, and derive insights. Use Python/pandas when helpful.', category: 'data' },
+  { id: 'designer', name: 'UI Designer', avatar: '🎨', systemPrompt: 'You are a UI/UX design expert. Help users create beautiful, usable interfaces. Suggest improvements and best practices.', category: 'design' },
+  { id: 'translator', name: 'Translator', avatar: '🌍', systemPrompt: 'You are an expert translator. Translate between languages naturally, preserving tone and meaning. Support Yoruba, Igbo, Hausa, French, Spanish, Portuguese.', category: 'language' },
+  { id: 'business', name: 'Business Advisor', avatar: '💼', systemPrompt: 'You are a business strategist. Help users with business plans, marketing, finance, and growth strategy.', category: 'business' },
+  { id: 'therapist', name: 'Wellness Coach', avatar: '🧘', systemPrompt: 'You are a supportive wellness coach. Listen empathetically, ask thoughtful questions, and help users reflect. Not a replacement for professional therapy.', category: 'wellness' },
+  { id: 'chef', name: 'Chef', avatar: '👨‍🍳', systemPrompt: 'You are a professional chef. Help users with recipes, cooking techniques, meal planning, and dietary advice.', category: 'lifestyle' }
+];
+
+app.get('/api/personas', (req, res) => {
+  res.json({ personas: defaultPersonas });
+});
+
+app.get('/api/personas/:id', (req, res) => {
+  const p = defaultPersonas.find(p => p.id === req.params.id);
+  if (!p) return res.status(404).json({ error: 'Persona not found' });
+  res.json(p);
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PROMPT LIBRARY
+// ══════════════════════════════════════════════════════════════════════════════
+const communityPrompts = [
+  { id: '1', title: 'Explain Like I\'m 5', prompt: 'Explain the following concept as if I were 5 years old, using simple analogies and everyday examples:', category: 'education', upvotes: 245, author: 'Tribal' },
+  { id: '2', title: 'Code Review', prompt: 'Review the following code for bugs, performance issues, and best practices. Suggest improvements:', category: 'coding', upvotes: 189, author: 'Tribal' },
+  { id: '3', title: 'Professional Email', prompt: 'Write a professional email with the following details. Use a clear subject line, polite greeting, concise body, and professional closing:', category: 'writing', upvotes: 312, author: 'Tribal' },
+  { id: '4', title: 'Meeting Summary', prompt: 'Summarize the following meeting notes into key points, action items, and decisions made:', category: 'productivity', upvotes: 156, author: 'Tribal' },
+  { id: '5', title: 'Blog Post Outline', prompt: 'Create a detailed blog post outline with hook, introduction, 5-7 sections with subheadings, and conclusion:', category: 'writing', upvotes: 203, author: 'Tribal' },
+  { id: '6', title: 'API Documentation', prompt: 'Write clear API documentation for the following endpoint including method, URL, parameters, request/response examples:', category: 'coding', upvotes: 134, author: 'Tribal' },
+  { id: '7', title: 'Study Plan', prompt: 'Create a 2-week study plan for the following topic. Include daily tasks, resources, and practice exercises:', category: 'education', upvotes: 178, author: 'Tribal' },
+  { id: '8', title: 'Business Proposal', prompt: 'Write a professional business proposal with executive summary, problem statement, solution, timeline, and pricing:', category: 'business', upvotes: 221, author: 'Tribal' },
+  { id: '9', title: 'Debug Helper', prompt: 'Help me debug the following error. Analyze the error message, identify the root cause, and provide a fix with explanation:', category: 'coding', upvotes: 267, author: 'Tribal' },
+  { id: '10', title: 'Social Media Post', prompt: 'Create an engaging social media post for the following topic. Include a hook, value, and call-to-action. Make it shareable:', category: 'marketing', upvotes: 198, author: 'Tribal' }
+];
+
+app.get('/api/prompts', (req, res) => {
+  const { category } = req.query;
+  let prompts = communityPrompts;
+  if (category && category !== 'all') prompts = prompts.filter(p => p.category === category);
+  res.json({ prompts });
+});
+
+app.post('/api/prompts/:id/upvote', authMw, (req, res) => {
+  const p = communityPrompts.find(p => p.id === req.params.id);
+  if (!p) return res.status(404).json({ error: 'Not found' });
+  p.upvotes++;
+  res.json({ ok: true, upvotes: p.upvotes });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AI MEMORY (Persistent across sessions)
+// ══════════════════════════════════════════════════════════════════════════════
+let userMemory = {};
+
+app.get('/api/memory', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const mem = await Memory.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(50).lean();
+      return res.json({ memories: mem });
+    }
+    const mems = userMemory[req.user.id] || [];
+    res.json({ memories: mems.slice(-50).reverse() });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/memory', authMw, async (req, res) => {
+  const { text, category } = req.body;
+  if (!text) return res.status(400).json({ error: 'Text required' });
+  try {
+    if (MONGO_URI) {
+      const mem = await Memory.create({ userId: req.user.id, text, category: category || 'general' });
+      return res.json({ ok: true, memory: mem });
+    }
+    if (!userMemory[req.user.id]) userMemory[req.user.id] = [];
+    const mem = { id: Date.now().toString(), text, category: category || 'general', createdAt: new Date().toISOString() };
+    userMemory[req.user.id].push(mem);
+    res.json({ ok: true, memory: mem });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.delete('/api/memory/:id', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) await Memory.findByIdAndDelete(req.params.id);
+    else {
+      const mems = userMemory[req.user.id] || [];
+      userMemory[req.user.id] = mems.filter(m => m.id !== req.params.id);
+    }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ACHIEVEMENTS / GAMIFICATION
+// ══════════════════════════════════════════════════════════════════════════════
+const achievementDefs = [
+  { id: 'first_chat', name: 'First Chat', icon: '🎉', desc: 'Sent your first message', condition: (stats) => stats.messages >= 1 },
+  { id: 'chat_10', name: 'Getting Started', icon: '💬', desc: 'Sent 10 messages', condition: (stats) => stats.messages >= 10 },
+  { id: 'chat_100', name: 'Conversationalist', icon: '🗣️', desc: 'Sent 100 messages', condition: (stats) => stats.messages >= 100 },
+  { id: 'chat_1000', name: 'Power User', icon: '⚡', desc: 'Sent 1000 messages', condition: (stats) => stats.messages >= 1000 },
+  { id: 'first_code', name: 'Code Runner', icon: '💻', desc: 'Ran code for the first time', condition: (stats) => stats.codeRuns >= 1 },
+  { id: 'code_50', name: 'Developer', icon: '👨‍💻', desc: 'Ran 50 code snippets', condition: (stats) => stats.codeRuns >= 50 },
+  { id: 'model_explorer', name: 'Model Explorer', icon: '🧠', desc: 'Used 3 different AI models', condition: (stats) => stats.modelsUsed >= 3 },
+  { id: 'first_image', name: 'Artist', icon: '🎨', desc: 'Generated your first image', condition: (stats) => stats.imagesGenerated >= 1 },
+  { id: 'week_streak', name: 'Week Warrior', icon: '🔥', desc: 'Used Tribal AI 7 days in a row', condition: (stats) => stats.streak >= 7 },
+  { id: 'month_streak', name: 'Monthly Master', icon: '👑', desc: '30-day streak', condition: (stats) => stats.streak >= 30 },
+  { id: 'night_owl', name: 'Night Owl', icon: '🦉', desc: 'Chat between 12am-4am', condition: (stats) => stats.nightChats >= 1 },
+  { id: 'early_bird', name: 'Early Bird', icon: '🐦', desc: 'Chat between 5am-7am', condition: (stats) => stats.earlyChats >= 1 },
+  { id: 'first_export', name: 'Exporter', icon: '📤', desc: 'Exported a chat', condition: (stats) => stats.exports >= 1 },
+  { id: 'pro_user', name: 'Pro Member', icon: '⭐', desc: 'Upgraded to Pro', condition: (stats) => stats.isPro }
+];
+
+app.get('/api/achievements', authMw, async (req, res) => {
+  try {
+    let stats = { messages: 0, codeRuns: 0, modelsUsed: 0, imagesGenerated: 0, streak: 0, nightChats: 0, earlyChats: 0, exports: 0, isPro: false };
+    if (MONGO_URI) {
+      const user = await User.findById(req.user.id).lean();
+      if (user) {
+        stats.messages = user.stats?.messages || 0;
+        stats.codeRuns = user.stats?.codeRuns || 0;
+        stats.isPro = user.plan === 'pro';
+        const models = await Chat.distinct('model', { userId: req.user.id });
+        stats.modelsUsed = models.length;
+      }
+    }
+    const earned = achievementDefs.filter(a => a.condition(stats));
+    const locked = achievementDefs.filter(a => !a.condition(stats));
+    res.json({ earned, locked, stats });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHAT SHARING
+// ══════════════════════════════════════════════════════════════════════════════
+let sharedChats = {};
+
+app.post('/api/chats/:id/share', authMw, async (req, res) => {
+  try {
+    const shareId = Math.random().toString(36).slice(2, 10);
+    sharedChats[shareId] = { chatId: req.params.id, userId: req.user.id, createdAt: new Date().toISOString() };
+    res.json({ ok: true, shareUrl: `/shared/${shareId}`, shareId });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.get('/api/shared/:shareId', async (req, res) => {
+  const shared = sharedChats[req.params.shareId];
+  if (!shared) return res.status(404).json({ error: 'Shared chat not found' });
+  try {
+    if (MONGO_URI) {
+      const chat = await Chat.findById(shared.chatId).lean();
+      if (!chat) return res.status(404).json({ error: 'Chat not found' });
+      return res.json({ title: chat.title, messages: chat.messages.map(m => ({ role: m.role, content: m.content })) });
+    }
+    const chat = memChats.find(c => c.id === shared.chatId);
+    if (!chat) return res.status(404).json({ error: 'Chat not found' });
+    res.json({ title: chat.title, messages: chat.messages.map(m => ({ role: m.role, content: m.content })) });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // HEALTH & CATCH-ALL
 // ══════════════════════════════════════════════════════════════════════════════
 

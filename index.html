@@ -174,6 +174,9 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
     <a href="settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Settings</a>
     <a href="pricing.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Upgrade</a>
     <a onclick="showReferralModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Referrals</a>
+    <a onclick="showPersonaModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6"/></svg> Personas</a>
+    <a onclick="showPromptModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Prompt Library</a>
+    <a onclick="showAchievementsModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Achievements</a>
   </div>
   <div class="sidebar-footer" id="userFooter" style="display:none">
     <div class="avatar" id="userAvatar">U</div>
@@ -267,6 +270,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
       </div>
     </div>
     <input type="file" id="fileInput" style="display:none" multiple accept="image/*,.pdf,.txt,.csv,.json,.md,.py,.js,.ts,.html,.css" onchange="handleFiles(this.files)">
+    <div id="suggestions" style="display:none;gap:6px;flex-wrap:wrap;justify-content:center;padding:8px 0 0"></div>
     <div class="input-footer">
       <span>Tribal AI can make mistakes. Verify important info.</span>
       <span id="charCount">0</span>
@@ -515,6 +519,47 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 </div>
 
 <div class="toast-wrap" id="toasts"></div>
+
+<!-- PERSONA MODAL -->
+<div class="modal-bg" id="personaModal">
+  <div class="modal" style="max-width:480px">
+    <h2 style="margin-bottom:12px">Choose Persona</h2>
+    <p style="font-size:.84rem;color:var(--ink3);margin-bottom:16px">Select an AI personality for your chat.</p>
+    <div id="personaList"></div>
+    <button class="btn btn-ghost" onclick="document.getElementById('personaModal').classList.remove('open')" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<!-- PROMPT LIBRARY MODAL -->
+<div class="modal-bg" id="promptModal">
+  <div class="modal" style="max-width:520px">
+    <h2 style="margin-bottom:12px">Prompt Library</h2>
+    <p style="font-size:.84rem;color:var(--ink3);margin-bottom:12px">Community-created prompts to supercharge your AI.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+      <button onclick="filterPrompts('all')" style="padding:4px 12px;border:1px solid var(--border);border-radius:16px;background:var(--bg3);color:var(--ink3);font:inherit;font-size:.76rem;cursor:pointer">All</button>
+      <button onclick="filterPrompts('coding')" style="padding:4px 12px;border:1px solid var(--border);border-radius:16px;background:var(--bg3);color:var(--ink3);font:inherit;font-size:.76rem;cursor:pointer">Coding</button>
+      <button onclick="filterPrompts('writing')" style="padding:4px 12px;border:1px solid var(--border);border-radius:16px;background:var(--bg3);color:var(--ink3);font:inherit;font-size:.76rem;cursor:pointer">Writing</button>
+      <button onclick="filterPrompts('education')" style="padding:4px 12px;border:1px solid var(--border);border-radius:16px;background:var(--bg3);color:var(--ink3);font:inherit;font-size:.76rem;cursor:pointer">Education</button>
+      <button onclick="filterPrompts('business')" style="padding:4px 12px;border:1px solid var(--border);border-radius:16px;background:var(--bg3);color:var(--ink3);font:inherit;font-size:.76rem;cursor:pointer">Business</button>
+      <button onclick="filterPrompts('productivity')" style="padding:4px 12px;border:1px solid var(--border);border-radius:16px;background:var(--bg3);color:var(--ink3);font:inherit;font-size:.76rem;cursor:pointer">Productivity</button>
+    </div>
+    <div id="promptList" style="max-height:300px;overflow-y:auto"></div>
+    <button class="btn btn-ghost" onclick="document.getElementById('promptModal').classList.remove('open')" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS MODAL -->
+<div class="modal-bg" id="achievementsModal">
+  <div class="modal" style="max-width:500px">
+    <h2 style="margin-bottom:12px">🏆 Achievements</h2>
+    <p style="font-size:.84rem;color:var(--ink3);margin-bottom:16px">Track your progress and unlock badges.</p>
+    <h3 style="font-size:.92rem;margin-bottom:8px">Earned</h3>
+    <div id="earnedList"></div>
+    <h3 style="font-size:.92rem;margin:16px 0 8px">Locked</h3>
+    <div id="lockedList"></div>
+    <button class="btn btn-ghost" onclick="document.getElementById('achievementsModal').classList.remove('open')" style="margin-top:12px">Close</button>
+  </div>
+</div>
 
 <input type="file" id="fileInputCamera" style="display:none" accept="image/*" capture="environment" onchange="handleFiles(this.files)">
 <input type="file" id="fileInputPhotos" style="display:none" accept="image/*" multiple onchange="handleFiles(this.files)">
@@ -826,6 +871,8 @@ async function sendMessage() {
       appendMsg('assistant', data.response);
       if (!activeChatId && data.chatId) { activeChatId = data.chatId; loadChats(); }
       if (data.remaining !== undefined) document.getElementById('usageBadge').textContent = data.remaining === '?' ? '∞' : `${data.remaining} left`;
+      // Smart suggestions after response
+      if (token) getSuggestions(msg, data.response);
     }
   } catch (e) {
     hideTyping();
@@ -1088,7 +1135,7 @@ function handleKey(e) {
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'L') { e.preventDefault(); toggleTheme(); }
 }
 function closeAllModals() {
-  ['authModal','settingsModal','referralModal','paymentModal','codeModal','imageModal','memoryModal','folderModal','analyticsModal','branchModal','sessionsModal','translateModal'].forEach(id => {
+  ['authModal','settingsModal','referralModal','paymentModal','codeModal','imageModal','memoryModal','folderModal','analyticsModal','branchModal','sessionsModal','translateModal','personaModal','promptModal','achievementsModal'].forEach(id => {
     document.getElementById(id)?.classList.remove('open');
   });
 }
@@ -1339,6 +1386,159 @@ function exportAllData() {
   window.open(`${API}/api/export`, '_blank');
   toast('Data export started', 'ok');
 }
+
+// ═══ PERSONAS ═════════════════════════════════════════════════════════
+let activePersona = 'default';
+async function showPersonaModal() {
+  if (!token) return showAuth('login');
+  const modal = document.getElementById('personaModal');
+  modal.classList.add('open');
+  try {
+    const r = await fetch(`${API}/api/personas`);
+    if (r.ok) {
+      const data = await r.json();
+      document.getElementById('personaList').innerHTML = data.personas.map(p => 
+        `<div class="persona-card" onclick="selectPersona('${p.id}')" style="cursor:pointer;padding:12px;border:1px solid var(--border);border-radius:var(--r);background:${activePersona===p.id?'var(--bg3)':'var(--surface)'};margin-bottom:8px;transition:.15s">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:1.5rem">${p.avatar}</span>
+            <div><strong>${p.name}</strong><br><span style="font-size:.78rem;color:var(--ink3)">${p.category}</span></div>
+            ${activePersona===p.id?'<span style="margin-left:auto;color:var(--accent)">✓ Active</span>':''}
+          </div>
+        </div>`
+      ).join('');
+    }
+  } catch {}
+}
+function selectPersona(id) {
+  activePersona = id;
+  localStorage.setItem('ta_persona', id);
+  toast('Persona updated', 'ok');
+  document.getElementById('personaModal').classList.remove('open');
+}
+
+// ═══ PROMPT LIBRARY ═════════════════════════════════════════════════════
+let promptCategory = 'all';
+async function showPromptModal() {
+  if (!token) return showAuth('login');
+  document.getElementById('promptModal').classList.add('open');
+  loadPrompts();
+}
+async function loadPrompts() {
+  try {
+    const r = await fetch(`${API}/api/prompts?category=${promptCategory}`);
+    if (r.ok) {
+      const data = await r.json();
+      document.getElementById('promptList').innerHTML = data.prompts.map(p => 
+        `<div style="padding:12px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);margin-bottom:8px;cursor:pointer" onclick="usePrompt(\'${p.prompt.replace(/'/g, "\\'")}\')">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <strong>${p.title}</strong>
+            <span style="font-size:.78rem;color:var(--accent)">▲ ${p.upvotes}</span>
+          </div>
+          <p style="font-size:.82rem;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.prompt}</p>
+          <span style="font-size:.72rem;color:var(--ink4);padding:2px 8px;background:var(--bg3);border-radius:4px">${p.category}</span>
+        </div>`
+      ).join('');
+    }
+  } catch {}
+}
+function filterPrompts(cat) {
+  promptCategory = cat;
+  loadPrompts();
+}
+function usePrompt(prompt) {
+  document.getElementById('inputBox').value = prompt;
+  document.getElementById('promptModal').classList.remove('open');
+  document.getElementById('inputBox').focus();
+}
+
+// ═══ ACHIEVEMENTS ═════════════════════════════════════════════════════
+async function showAchievementsModal() {
+  if (!token) return showAuth('login');
+  document.getElementById('achievementsModal').classList.add('open');
+  try {
+    const r = await fetch(`${API}/api/achievements`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) {
+      const data = await r.json();
+      document.getElementById('earnedList').innerHTML = data.earned.map(a => 
+        `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px">
+          <span style="font-size:1.5rem">${a.icon}</span>
+          <div><strong>${a.name}</strong><br><span style="font-size:.82rem;color:var(--ink3)">${a.desc}</span></div>
+          <span style="margin-left:auto;color:var(--green);font-size:.82rem">✓ Earned</span>
+        </div>`
+      ).join('') || '<div style="text-align:center;color:var(--ink4);padding:20px">No achievements yet. Keep chatting!</div>';
+      document.getElementById('lockedList').innerHTML = data.locked.map(a => 
+        `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;opacity:.5">
+          <span style="font-size:1.5rem">🔒</span>
+          <div><strong>${a.name}</strong><br><span style="font-size:.82rem;color:var(--ink3)">${a.desc}</span></div>
+        </div>`
+      ).join('');
+    }
+  } catch {}
+}
+
+// ═══ SMART SUGGESTIONS ═══════════════════════════════════════════════
+let lastSuggestions = [];
+async function getSuggestions(message, response) {
+  try {
+    const r = await fetch(`${API}/api/suggestions`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ message, response })
+    });
+    if (r.ok) {
+      const data = await r.json();
+      lastSuggestions = data.suggestions || [];
+      renderSuggestions();
+    }
+  } catch {}
+}
+function renderSuggestions() {
+  const el = document.getElementById('suggestions');
+  if (!lastSuggestions.length) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML = lastSuggestions.map(s => 
+    `<button onclick="useSuggestion('${s.replace(/'/g, "\\'")}')" style="padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--ink3);font:inherit;font-size:.78rem;cursor:pointer;transition:.15s;white-space:nowrap">${s}</button>`
+  ).join('');
+}
+function useSuggestion(text) {
+  document.getElementById('inputBox').value = text;
+  document.getElementById('inputBox').focus();
+  lastSuggestions = [];
+  renderSuggestions();
+}
+
+// ═══ WEB SEARCH IN CHAT ═══════════════════════════════════════════════
+async function webSearch(query) {
+  if (!token) return showAuth('login');
+  try {
+    const r = await fetch(`${API}/api/web-search`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ query })
+    });
+    if (r.ok) {
+      const data = await r.json();
+      return data.results;
+    }
+  } catch {}
+  return [];
+}
+
+// ═══ SHARE CHAT ═══════════════════════════════════════════════════════
+async function shareChat() {
+  if (!token || !activeChatId) return;
+  try {
+    const r = await fetch(`${API}/api/chats/${activeChatId}/share`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (r.ok) {
+      const data = await r.json();
+      navigator.clipboard.writeText(window.location.origin + data.shareUrl);
+      toast('Link copied to clipboard!', 'ok');
+    }
+  } catch { toast('Failed to share', 'err'); }
+}
+
+// ═══ LOAD PERSONA ON START ═════════════════════════════════════════════
+activePersona = localStorage.getItem('ta_persona') || 'default';
 </script>
 </body>
 </html>
