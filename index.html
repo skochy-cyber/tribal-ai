@@ -8,6 +8,7 @@
 <title>Tribal AI — Chat, Code, Create</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <style>
@@ -194,6 +195,9 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
     </div>
     <div class="topbar-right">
       <div class="usage-badge" id="usageBadge">50 left</div>
+      <select id="modelSelect" onchange="switchModel(this.value)" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:.78rem;color:var(--ink3);cursor:pointer;outline:none">
+        <option value="claude-sonnet-4">Claude Sonnet 4</option>
+      </select>
       <button class="topbar-btn" onclick="toggleTheme()" title="Toggle theme">
         <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
@@ -254,6 +258,8 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
     <h2 id="authTitle">Sign In</h2>
     <p id="authSub">Welcome back to Tribal AI</p>
     <div class="err" id="authErr"></div>
+    <div id="googleLoginBtn" style="margin-bottom:16px"></div>
+    <div style="text-align:center;font-size:.78rem;color:var(--ink4);margin-bottom:16px">or continue with email</div>
     <form id="authForm" onsubmit="handleAuth(event)">
       <div class="fg" id="nameField" style="display:none">
         <label>Full Name</label>
@@ -358,8 +364,8 @@ let isRecording = false;
 marked.setOptions({ highlight: (code, lang) => { if (lang && hljs.getLanguage(lang)) return hljs.highlight(code, { language: lang }).value; return hljs.highlightAuto(code).value; }, breaks: true, gfm: true });
 
 // ── Init ──────────────────────────────────────────────────────────────────
-if (token && user) { showLoggedIn(); loadChats(); loadUserSettings(); }
-else { showLoggedOut(); }
+if (token && user) { showLoggedIn(); loadChats(); loadUserSettings(); loadModels(); initGoogleLogin(); }
+else { showLoggedOut(); initGoogleLogin(); }
 if (user?.theme === 'light') document.body.classList.add('light');
 // Check shared chat in URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -372,6 +378,82 @@ function toggleTheme() {
   const theme = document.body.classList.contains('light') ? 'light' : 'dark';
   if (token) fetch(`${API}/api/me`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ theme }) });
   if (user) { user.theme = theme; localStorage.setItem('ta_user', JSON.stringify(user)); }
+}
+
+// ── Google Social Login ──────────────────────────────────────────────────────
+function initGoogleLogin() {
+  if (!window.google?.accounts?.id) return;
+  google.accounts.id.initialize({ client_id: 'YOUR_GOOGLE_CLIENT_ID', callback: handleGoogleLogin });
+  google.accounts.id.renderButton(document.getElementById('googleLoginBtn'), { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' });
+}
+
+async function handleGoogleLogin(response) {
+  try {
+    const r = await fetch(`${API}/api/auth/google`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Google auth failed');
+    token = data.token; user = data.user;
+    localStorage.setItem('ta_token', token);
+    localStorage.setItem('ta_user', JSON.stringify(user));
+    closeAuth(); showLoggedIn(); loadChats(); loadModels();
+  } catch (err) { document.getElementById('authErr').textContent = err.message; document.getElementById('authErr').classList.add('show'); }
+}
+
+// ── Multi-Model Switching ──────────────────────────────────────────────────
+let availableModels = [];
+async function loadModels() {
+  if (!token) return;
+  try {
+    const r = await fetch(`${API}/api/models`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) {
+      const data = await r.json();
+      availableModels = data.models || [];
+      const select = document.getElementById('modelSelect');
+      select.innerHTML = availableModels.map(m => `<option value="${m.id}" ${m.id === data.current ? 'selected' : ''}>${m.name}${m.tier === 'pro' ? ' ⭐' : ''}</option>`).join('');
+    }
+  } catch {}
+}
+
+async function switchModel(modelId) {
+  if (!token) return;
+  try {
+    await fetch(`${API}/api/models`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ model: modelId })
+    });
+    toast(`Switched to ${modelId}`);
+  } catch {}
+}
+
+// ── Web Search ──────────────────────────────────────────────────────────────
+async function webSearch(query) {
+  if (!token) return showAuth('login');
+  try {
+    const r = await fetch(`${API}/api/search`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ query })
+    });
+    const data = await r.json();
+    return data.results || [];
+  } catch { return []; }
+}
+
+// ── Templates ───────────────────────────────────────────────────────────────
+async function loadTemplates() {
+  if (!token) return [];
+  try {
+    const r = await fetch(`${API}/api/templates`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) { const data = await r.json(); return data.templates || []; }
+  } catch {} return [];
+}
+
+async function useTemplate(template) {
+  document.getElementById('inputBox').value = template.prompt;
+  updateSendBtn();
+  document.getElementById('inputBox').focus();
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────

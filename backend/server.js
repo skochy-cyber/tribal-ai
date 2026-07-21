@@ -1,7 +1,8 @@
 /**
- * Tribal AI — Backend Server v2.0
+ * Tribal AI — Backend Server v3.0
  * Node.js + Express + MongoDB + Anthropic Claude / OpenAI GPT
- * Features: Auth, Chat, File Upload, Payments, Referrals, Sharing, API
+ * Features: Auth, Chat, File Upload, Payments, Referrals, Sharing, API,
+ *           Social Login, Multi-model, Web Search, Templates, Teams
  * Author: Obasanjo Samuel — Tribal Tech
  */
 
@@ -25,9 +26,23 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const OPENAI_API_KEY    = process.env.OPENAI_API_KEY || '';
 const PAYSTACK_SECRET    = process.env.PAYSTACK_SECRET || '';
+const GOOGLE_CLIENT_ID  = process.env.GOOGLE_CLIENT_ID  || '';
+const GROQ_API_KEY      = process.env.GROQ_API_KEY      || '';
+const WEB_SEARCH_API    = process.env.WEB_SEARCH_API    || ''; // SerpAPI/Tavily key
 const FREE_LIMIT  = parseInt(process.env.FREE_MONTHLY_LIMIT) || 50;
 const PRO_LIMIT   = parseInt(process.env.PRO_MONTHLY_LIMIT) || 9999;
 const PRO_PRICE   = 2500; // Naira
+
+// ── Available AI Models ─────────────────────────────────────────────────────
+const AI_MODELS = [
+  { id: 'claude-sonnet-4', name: 'Claude Sonnet 4', provider: 'anthropic', tier: 'free' },
+  { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'anthropic', tier: 'pro' },
+  { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai', tier: 'pro' },
+  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', provider: 'openai', tier: 'free' },
+  { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', provider: 'groq', tier: 'free' },
+  { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B', provider: 'groq', tier: 'free' },
+  { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B', provider: 'groq', tier: 'free' },
+];
 
 app.set('trust proxy', 1);
 
@@ -45,8 +60,13 @@ const UserSchema = new mongoose.Schema({
   email:      { type: String, required: true, unique: true, lowercase: true, trim: true },
   name:       { type: String, default: '' },
   password:   { type: String },
+  avatar:     { type: String, default: '' },
+  provider:   { type: String, default: 'email' }, // email, google, github
+  providerId: { type: String, default: '' },
   role:       { type: String, default: 'user' },
   plan:       { type: String, default: 'free' },
+  teamId:     { type: mongoose.Schema.Types.ObjectId, ref: 'TATeam', default: null },
+  teamRole:   { type: String, default: 'member' }, // owner, admin, member
   referralCode: { type: String, unique: true, default: () => crypto.randomBytes(4).toString('hex').toUpperCase() },
   referredBy: { type: String, default: '' },
   referralCount: { type: Number, default: 0 },
@@ -55,6 +75,7 @@ const UserSchema = new mongoose.Schema({
   monthReset: { type: Date, default: Date.now },
   totalMessages: { type: Number, default: 0 },
   customInstructions: { type: String, default: '' },
+  preferredModel: { type: String, default: 'claude-sonnet-4' },
   theme: { type: String, default: 'dark' },
   lastActive: { type: Date, default: Date.now },
 }, { timestamps: true });
@@ -96,14 +117,36 @@ const PaymentSchema = new mongoose.Schema({
   plan: { type: String, default: 'pro' },
 }, { timestamps: true });
 
+const TeamSchema = new mongoose.Schema({
+  name:      { type: String, required: true },
+  ownerId:   { type: mongoose.Schema.Types.ObjectId, ref: 'TAUser', required: true },
+  plan:      { type: String, default: 'team' },
+  maxMembers: { type: Number, default: 10 },
+  members:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'TAUser' }],
+  inviteCode: { type: String, default: () => crypto.randomBytes(6).toString('hex').toUpperCase() },
+}, { timestamps: true });
+
+const TemplateSchema = new mongoose.Schema({
+  title:       { type: String, required: true },
+  description: { type: String, default: '' },
+  prompt:      { type: String, required: true },
+  category:    { type: String, default: 'general' },
+  icon:        { type: String, default: '💬' },
+  userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'TAUser', default: null },
+  isPublic:    { type: Boolean, default: true },
+  uses:        { type: Number, default: 0 },
+}, { timestamps: true });
+
 const User    = mongoose.models.TAUser   || mongoose.model('TAUser',   UserSchema);
 const Chat    = mongoose.models.TAChat   || mongoose.model('TAChat',   ChatSchema);
 const Log     = mongoose.models.TALog    || mongoose.model('TALog',    LogSchema);
 const Referral = mongoose.models.TAReferral || mongoose.model('TAReferral', ReferralSchema);
 const Payment = mongoose.models.TAPayment || mongoose.model('TAPayment', PaymentSchema);
+const Team    = mongoose.models.TATeam   || mongoose.model('TATeam', TeamSchema);
+const Template = mongoose.models.TATemplate || mongoose.model('TATemplate', TemplateSchema);
 
 // ── In-memory fallback ───────────────────────────────────────────────────────
-const memUsers = [], memChats = [], memLogs = [], memReferrals = [], memPayments = [];
+const memUsers = [], memChats = [], memLogs = [], memReferrals = [], memPayments = [], memTeams = [], memTemplates = [];
 let memIdSeq = 1;
 
 // ── Seed admin ───────────────────────────────────────────────────────────────
@@ -476,6 +519,190 @@ app.get('/api/chats/:id/export', authMw, async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// MODELS LIST
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/models', authMw, async (req, res) => {
+  let user;
+  if (MONGO_URI) user = await User.findById(req.user.id).select('plan');
+  else user = memUsers.find(u => u.id == req.user.id);
+  const plan = user?.plan || 'free';
+  const models = AI_MODELS.filter(m => m.tier === 'free' || plan === 'pro' || plan === 'admin');
+  res.json({ models, current: user?.preferredModel || 'claude-sonnet-4' });
+});
+
+app.put('/api/models', authMw, async (req, res) => {
+  const { model } = req.body;
+  if (!model) return res.status(400).json({ error: 'Model required' });
+  try {
+    if (MONGO_URI) await User.findByIdAndUpdate(req.user.id, { preferredModel: model });
+    else { const u = memUsers.find(u => u.id == req.user.id); if (u) u.preferredModel = model; }
+    res.json({ ok: true, model });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WEB SEARCH
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/search', authMw, async (req, res) => {
+  const { query } = req.body;
+  if (!query) return res.status(400).json({ error: 'Query required' });
+  try {
+    // Use DuckDuckGo Lite as free fallback
+    const r = await fetch(`https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    const html = await r.text();
+    // Simple extraction
+    const results = [];
+    const regex = /<a[^>]+class="result-link"[^>]*href="([^"]+)"[^>]*>([^<]+)<\/a>/gi;
+    let match;
+    while ((match = regex.exec(html)) && results.length < 5) {
+      results.push({ title: match[2].trim(), url: match[1] });
+    }
+    // Fallback: extract any links
+    if (!results.length) {
+      const linkRegex = /<a[^>]+href="(https?:\/\/[^"]+)"[^>]*>([^<]{10,80})<\/a>/gi;
+      while ((match = linkRegex.exec(html)) && results.length < 5) {
+        if (!match[1].includes('duckduckgo')) results.push({ title: match[2].trim(), url: match[1] });
+      }
+    }
+    res.json({ results, query });
+  } catch (e) { res.status(500).json({ error: 'Search failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEMPLATES
+// ══════════════════════════════════════════════════════════════════════════════
+
+const DEFAULT_TEMPLATES = [
+  { title: 'Write Code', description: 'Generate code in any language', prompt: 'Write clean, well-commented code for: ', icon: '💻', category: 'coding' },
+  { title: 'Explain Concept', description: 'Explain any topic simply', prompt: 'Explain this concept in simple terms with examples: ', icon: '💡', category: 'education' },
+  { title: 'Write Email', description: 'Professional email drafts', prompt: 'Write a professional email about: ', icon: '✉️', category: 'writing' },
+  { title: 'Debug Code', description: 'Find and fix bugs', prompt: 'Find and fix the bugs in this code. Explain each issue: ', icon: '🐛', category: 'coding' },
+  { title: 'Business Plan', description: 'Create a business plan', prompt: 'Create a detailed business plan for: ', icon: '🚀', category: 'business' },
+  { title: 'Analyze Data', description: 'Analyze and visualize data', prompt: 'Analyze this data and provide insights with recommendations: ', icon: '📊', category: 'analysis' },
+  { title: 'Translate', description: 'Translate text to any language', prompt: 'Translate this text to English, keeping the meaning and tone: ', icon: '🌍', category: 'writing' },
+  { title: 'Summarize', description: 'Summarize long text', prompt: 'Summarize this text in clear bullet points: ', icon: '📝', category: 'writing' },
+  { title: 'SEO Content', description: 'Write SEO-optimized content', prompt: 'Write SEO-optimized content about: ', icon: '🔍', category: 'marketing' },
+  { title: 'Social Media', description: 'Create social media posts', prompt: 'Create engaging social media posts about: ', icon: '📱', category: 'marketing' },
+  { title: 'Recipe', description: 'Generate recipes', prompt: 'Create a detailed recipe for: ', icon: '🍳', category: 'lifestyle' },
+  { title: 'Interview Prep', description: 'Prepare for interviews', prompt: 'Generate interview questions and answers for: ', icon: '🎯', category: 'education' },
+];
+
+app.get('/api/templates', authMw, async (req, res) => {
+  try {
+    let custom = [];
+    if (MONGO_URI) custom = await Template.find({ $or: [{ userId: null }, { userId: req.user.id }] }).sort({ uses: -1 }).lean();
+    else custom = memTemplates.filter(t => !t.userId || t.userId == req.user.id);
+    res.json({ templates: [...DEFAULT_TEMPLATES, ...custom] });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/templates', authMw, async (req, res) => {
+  const { title, description, prompt, category, icon } = req.body;
+  if (!title || !prompt) return res.status(400).json({ error: 'Title and prompt required' });
+  try {
+    if (MONGO_URI) {
+      const t = await Template.create({ title, description, prompt, category: category || 'custom', icon: icon || '⭐', userId: req.user.id });
+      return res.json(t);
+    }
+    const t = { id: memIdSeq++, title, description, prompt, category: category || 'custom', icon: icon || '⭐', userId: req.user.id, uses: 0, createdAt: new Date() };
+    memTemplates.push(t);
+    res.json(t);
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SOCIAL LOGIN (Google)
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/auth/google', async (req, res) => {
+  const { credential, clientId } = req.body;
+  if (!credential) return res.status(400).json({ error: 'Google credential required' });
+  try {
+    // Decode JWT payload (basic — in production use google-auth-library)
+    const payload = JSON.parse(Buffer.from(credential.split('.')[1], 'base64').toString());
+    const { email, name, picture, sub: googleId } = payload;
+    if (!email) return res.status(400).json({ error: 'Invalid Google token' });
+
+    if (MONGO_URI) {
+      let user = await User.findOne({ $or: [{ email }, { provider: 'google', providerId: googleId }] });
+      if (!user) {
+        user = await User.create({ email, name: name || email.split('@')[0], avatar: picture, provider: 'google', providerId: googleId, password: '' });
+      } else if (!user.providerId) {
+        user.provider = 'google'; user.providerId = googleId; if (picture) user.avatar = picture;
+        await user.save();
+      }
+      return res.json({ token: makeToken(user), user: { email: user.email, name: user.name, plan: user.plan, avatar: user.avatar } });
+    }
+
+    let user = memUsers.find(u => u.email === email.toLowerCase() || (u.provider === 'google' && u.providerId === googleId));
+    if (!user) {
+      user = { id: memIdSeq++, email: email.toLowerCase(), name: name || email.split('@')[0], avatar: picture, provider: 'google', providerId: googleId, password: '', role: 'user', plan: 'free', referralCode: crypto.randomBytes(4).toString('hex').toUpperCase(), referralCount: 0, bonusMessages: 0, messagesThisMonth: 0, totalMessages: 0, customInstructions: '', preferredModel: 'claude-sonnet-4', theme: 'dark', createdAt: new Date() };
+      memUsers.push(user);
+    }
+    res.json({ token: makeToken(user), user: { email: user.email, name: user.name, plan: user.plan, avatar: user.avatar } });
+  } catch (e) { res.status(500).json({ error: 'Google auth failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEAM ACCOUNTS
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/teams', authMw, async (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: 'Team name required' });
+  try {
+    if (MONGO_URI) {
+      const team = await Team.create({ name, ownerId: req.user.id, members: [req.user.id] });
+      await User.findByIdAndUpdate(req.user.id, { teamId: team._id, teamRole: 'owner' });
+      return res.json(team);
+    }
+    const team = { id: memIdSeq++, name, ownerId: req.user.id, plan: 'team', maxMembers: 10, members: [req.user.id], inviteCode: crypto.randomBytes(6).toString('hex').toUpperCase(), createdAt: new Date() };
+    memTeams.push(team);
+    const u = memUsers.find(u => u.id == req.user.id); if (u) { u.teamId = team.id; u.teamRole = 'owner'; }
+    res.json(team);
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/teams/join', authMw, async (req, res) => {
+  const { inviteCode } = req.body;
+  if (!inviteCode) return res.status(400).json({ error: 'Invite code required' });
+  try {
+    let team;
+    if (MONGO_URI) team = await Team.findOne({ inviteCode: inviteCode.toUpperCase() });
+    else team = memTeams.find(t => t.inviteCode === inviteCode.toUpperCase());
+    if (!team) return res.status(404).json({ error: 'Team not found' });
+    if (team.members.length >= team.maxMembers) return res.status(400).json({ error: 'Team is full' });
+    const memberId = req.user.id;
+    if (team.members.includes(memberId)) return res.status(400).json({ error: 'Already in team' });
+    team.members.push(memberId);
+    if (MONGO_URI) {
+      await team.save();
+      await User.findByIdAndUpdate(memberId, { teamId: team._id, teamRole: 'member' });
+    } else {
+      const u = memUsers.find(u => u.id == memberId); if (u) { u.teamId = team.id; u.teamRole = 'member'; }
+    }
+    res.json({ ok: true, team: { name: team.name, inviteCode: team.inviteCode } });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.get('/api/teams/my', authMw, async (req, res) => {
+  try {
+    let user;
+    if (MONGO_URI) user = await User.findById(req.user.id).select('teamId teamRole');
+    else user = memUsers.find(u => u.id == req.user.id);
+    if (!user?.teamId) return res.json({ team: null });
+    let team;
+    if (MONGO_URI) team = await Team.findById(user.teamId).populate('members', 'name email avatar').lean();
+    else team = memTeams.find(t => t.id == user.teamId);
+    res.json({ team, role: user.teamRole });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // REFERRAL SYSTEM
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -655,7 +882,7 @@ app.put('/api/admin/users/:id/plan', authMw, adminMw, async (req, res) => {
 // HEALTH & CATCH-ALL
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '2.0.0', db: MONGO_URI ? 'mongodb' : 'memory', features: ['chat','upload','share','export','referrals','payments','api'], uptime: Math.floor(process.uptime()) }));
+app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '3.0.0', db: MONGO_URI ? 'mongodb' : 'memory', features: ['chat','upload','share','export','referrals','payments','api','social-login','multi-model','web-search','templates','teams'], uptime: Math.floor(process.uptime()) }));
 
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) res.sendFile(path.join(__dirname, '..', 'index.html'));
