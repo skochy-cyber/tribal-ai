@@ -214,6 +214,12 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
       <button class="topbar-btn" onclick="startVoiceInput()" title="Voice input">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </button>
+      <button class="topbar-btn" onclick="toggleCompare()" title="Compare models" style="${compareMode?'background:var(--accent);color:#fff':''}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="8" height="18" rx="1"/><rect x="14" y="3" width="8" height="18" rx="1"/></svg>
+      </button>
+      <button class="topbar-btn" onclick="showEmbedModal()" title="Get embed code">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      </button>
       <button class="topbar-btn" onclick="openCodeModal()" title="Run code">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
       </button>
@@ -905,6 +911,12 @@ async function sendMessage() {
     clearFiles();
   }
 
+  // Route to compare mode if active
+  if (compareMode && msg) {
+    compareModels(msg);
+    return;
+  }
+
   showTyping();
   scrollToBottom();
   busy = true;
@@ -1224,7 +1236,11 @@ const commands = [
   { name: 'Custom Instructions', icon: '📝', action: 'showInstructionsModal()' },
   { name: 'Dashboard', icon: '📊', action: 'window.location="dashboard.html"' },
   { name: 'API Docs', icon: '📖', action: 'window.location="api-docs.html"' },
-  { name: 'Keyboard Shortcuts', icon: '⌨️', action: 'showShortcutsModal()' }
+  { name: 'Keyboard Shortcuts', icon: '⌨️', action: 'showShortcutsModal()' },
+  { name: 'Compare Models', icon: '🔀', action: 'toggleCompare()' },
+  { name: 'Get Embed Code', icon: '🔗', action: 'showEmbedModal()' },
+  { name: 'Import Chat', icon: '📥', action: 'showImportModal()' },
+  { name: 'Custom Instructions', icon: '📝', action: 'showInstructionsModal()' }
 ];
 
 function toggleCommandPalette() {
@@ -1268,6 +1284,46 @@ function startVoiceInput() {
 // ── Chat Import ───────────────────────────────────────────────────────────
 function showImportModal() {
   document.getElementById('importModal')?.classList.add('open');
+}
+
+// ── Comparison Mode ────────────────────────────────────────────────────────
+let compareMode = false;
+function toggleCompare() {
+  compareMode = !compareMode;
+  toast(compareMode ? 'Comparison mode ON — send to 2 models' : 'Comparison mode OFF', 'ok');
+}
+async function compareModels(message) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/compare`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ message, modelA: 'claude-sonnet-4', modelB: 'gpt-4o-mini' })
+    });
+    hideSkeleton();
+    if (r.ok) {
+      const data = await r.json();
+      const container = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0';
+      div.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px"><div style="font-size:.78rem;color:var(--accent);font-weight:600;margin-bottom:8px">${data.modelA}</div><div style="font-size:.88rem;line-height:1.6;color:var(--ink2)">${marked.parse(data.responseA)}</div></div><div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px"><div style="font-size:.78rem;color:var(--blue);font-weight:600;margin-bottom:8px">${data.modelB}</div><div style="font-size:.88rem;line-height:1.6;color:var(--ink2)">${marked.parse(data.responseB)}</div></div>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+  } catch { hideSkeleton(); toast('Comparison failed', 'err'); }
+}
+
+// ── Embed Widget ───────────────────────────────────────────────────────────
+async function showEmbedModal() {
+  if (!token) return showAuth('login');
+  try {
+    const r = await fetch(`${API}/api/embed`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) {
+      const data = await r.json();
+      navigator.clipboard.writeText(data.embedCode);
+      toast('Embed code copied!', 'ok');
+    }
+  } catch { toast('Failed', 'err'); }
 }
 async function importChat() {
   const file = document.getElementById('importFile')?.files[0];

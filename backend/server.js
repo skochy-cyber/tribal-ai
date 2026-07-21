@@ -1947,6 +1947,67 @@ app.get('/api/stats', authMw, async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// COMPARISON MODE — Send same prompt to 2 models
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/compare', authMw, async (req, res) => {
+  const { message, modelA, modelB } = req.body;
+  if (!message) return res.status(400).json({ error: 'Message required' });
+  const mA = modelA || 'claude-sonnet-4';
+  const mB = modelB || 'gpt-4o-mini';
+  try {
+    const [resA, resB] = await Promise.all([
+      generateAIResponse(message, mA, []),
+      generateAIResponse(message, mB, [])
+    ]);
+    res.json({ modelA: mA, responseA: resA, modelB: mB, responseB: resB });
+  } catch (e) { res.status(500).json({ error: 'Comparison failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EMBED WIDGET — Generate embed code
+// ══════════════════════════════════════════════════════════════════════════════
+app.get('/api/embed', authMw, (req, res) => {
+  const embedCode = `<iframe src="${req.protocol}://${req.get('host')}/playground.html?embed=1" width="400" height="600" frameborder="0" style="border-radius:12px;border:1px solid #2e2d29"></iframe>`;
+  res.json({ embedCode, widgetUrl: `${req.protocol}://${req.get('host')}/playground.html?embed=1` });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WEBHOOKS — Send events to external services
+// ══════════════════════════════════════════════════════════════════════════════
+let webhooks = [];
+
+app.get('/api/webhooks', authMw, (req, res) => {
+  const userHooks = webhooks.filter(w => w.userId == req.user.id);
+  res.json({ webhooks: userHooks });
+});
+
+app.post('/api/webhooks', authMw, (req, res) => {
+  const { url, events } = req.body;
+  if (!url) return res.status(400).json({ error: 'URL required' });
+  const hook = { id: Date.now().toString(), userId: req.user.id, url, events: events || ['chat.created', 'payment.success'], active: true, createdAt: new Date().toISOString() };
+  webhooks.push(hook);
+  res.json({ ok: true, webhook: hook });
+});
+
+app.delete('/api/webhooks/:id', authMw, (req, res) => {
+  webhooks = webhooks.filter(w => w.id !== req.params.id);
+  res.json({ ok: true });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════════════════════════════════════════════
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const top = await User.find({ plan: 'pro' }).select('name plan').limit(10).lean();
+      return res.json({ leaderboard: top });
+    }
+    res.json({ leaderboard: [] });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // HEALTH & CATCH-ALL
 // ══════════════════════════════════════════════════════════════════════════════
 
