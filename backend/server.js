@@ -88,9 +88,14 @@ const ChatSchema = new mongoose.Schema({
   model:    { type: String, default: 'claude-sonnet-4' },
   shared:   { type: Boolean, default: false },
   shareId:  { type: String, default: '' },
+  pinned:   { type: Boolean, default: false },
+  archived: { type: Boolean, default: false },
+  folderId: { type: mongoose.Schema.Types.ObjectId, default: null },
+  tags:     [{ type: String }],
   messages: [{
     role:      { type: String, enum: ['user', 'assistant', 'system'] },
     content:   { type: String },
+    reactions: [{ emoji: String, userId: mongoose.Schema.Types.ObjectId }],
     timestamp: { type: Date, default: Date.now },
   }],
 }, { timestamps: true });
@@ -1439,7 +1444,187 @@ app.put('/api/admin/users/:id/plan', authMw, adminMw, async (req, res) => {
 // HEALTH & CATCH-ALL
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '3.0.0', db: MONGO_URI ? 'mongodb' : 'memory', features: ['chat','upload','share','export','referrals','payments','api','social-login','multi-model','web-search','templates','teams'], uptime: Math.floor(process.uptime()) }));
+// ══════════════════════════════════════════════════════════════════════════════
+// F1: CONVERSATION SEARCH
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/chats/search/:query', authMw, async (req, res) => {
+  try {
+    const q = req.params.query.toLowerCase();
+    if (MONGO_URI) {
+      const chats = await Chat.find({ userId: req.user.id, $or: [
+        { title: new RegExp(q, 'i') },
+        { 'messages.content': new RegExp(q, 'i') }
+      ]}).select('title model updatedAt').sort({ updatedAt: -1 }).limit(20).lean();
+      return res.json({ results: chats });
+    }
+    const results = memChats.filter(c => c.userId == req.user.id && (
+      (c.title || '').toLowerCase().includes(q) ||
+      c.messages.some(m => (m.content || '').toLowerCase().includes(q))
+    )).slice(0, 20).map(({ messages, ...c }) => c);
+    res.json({ results });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// F2: PIN CHATS
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.put('/api/chats/:id/pin', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const chat = await Chat.findOne({ _id: req.params.id, userId: req.user.id });
+      if (chat) { chat.pinned = !chat.pinned; await chat.save(); return res.json({ pinned: chat.pinned }); }
+    }
+    const chat = memChats.find(c => (c._id || c.id) == req.params.id && c.userId == req.user.id);
+    if (chat) { chat.pinned = !chat.pinned; return res.json({ pinned: chat.pinned }); }
+    res.status(404).json({ error: 'Not found' });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// F3: ARCHIVE CHATS
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.put('/api/chats/:id/archive', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const chat = await Chat.findOne({ _id: req.params.id, userId: req.user.id });
+      if (chat) { chat.archived = !chat.archived; await chat.save(); return res.json({ archived: chat.archived }); }
+    }
+    const chat = memChats.find(c => (c._id || c.id) == req.params.id && c.userId == req.user.id);
+    if (chat) { chat.archived = !chat.archived; return res.json({ archived: chat.archived }); }
+    res.status(404).json({ error: 'Not found' });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// F9: EDIT & RESEND
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.put('/api/chats/:chatId/messages/:msgIdx', authMw, async (req, res) => {
+  const { content } = req.body;
+  if (!content) return res.status(400).json({ error: 'Content required' });
+  try {
+    let chat;
+    if (MONGO_URI) chat = await Chat.findOne({ _id: req.params.chatId, userId: req.user.id });
+    else chat = memChats.find(c => (c._id || c.id) == req.params.chatId && c.userId == req.user.id);
+    if (!chat) return res.status(404).json({ error: 'Chat not found' });
+    const idx = parseInt(req.params.msgIdx);
+    if (idx < 0 || idx >= chat.messages.length) return res.status(400).json({ error: 'Invalid index' });
+    chat.messages[idx].content = content;
+    if (MONGO_URI) await chat.save();
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// F10: MESSAGE REACTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/chats/:chatId/messages/:msgIdx/react', authMw, async (req, res) => {
+  const { emoji } = req.body;
+  try {
+    let chat;
+    if (MONGO_URI) chat = await Chat.findOne({ _id: req.params.chatId, userId: req.user.id });
+    else chat = memChats.find(c => (c._id || c.id) == req.params.chatId && c.userId == req.user.id);
+    if (!chat) return res.status(404).json({ error: 'Chat not found' });
+    const idx = parseInt(req.params.msgIdx);
+    if (!chat.messages[idx]) return res.status(400).json({ error: 'Invalid index' });
+    if (!chat.messages[idx].reactions) chat.messages[idx].reactions = [];
+    const existing = chat.messages[idx].reactions.findIndex(r => r.emoji === emoji);
+    if (existing > -1) chat.messages[idx].reactions.splice(existing, 1);
+    else chat.messages[idx].reactions.push({ emoji, userId: req.user.id });
+    if (MONGO_URI) await chat.save();
+    res.json({ reactions: chat.messages[idx].reactions });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// F36: USAGE ALERTS
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/alerts', authMw, async (req, res) => {
+  try {
+    let user;
+    if (MONGO_URI) user = await User.findById(req.user.id).select('messagesThisMonth plan bonusMessages');
+    else user = memUsers.find(u => u.id == req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const limit = user.plan === 'pro' ? PRO_LIMIT : FREE_LIMIT + (user.bonusMessages || 0);
+    const used = user.messagesThisMonth || 0;
+    const pct = (used / limit) * 100;
+    const alerts = [];
+    if (pct >= 90) alerts.push({ level: 'critical', message: `You've used ${Math.round(pct)}% of your monthly limit. Upgrade to Pro for unlimited.` });
+    else if (pct >= 70) alerts.push({ level: 'warning', message: `You've used ${Math.round(pct)}% of your monthly limit.` });
+    res.json({ alerts, used, limit, pct: Math.round(pct) });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// F34: AUDIT LOGS
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/audit', authMw, adminMw, async (req, res) => {
+  try {
+    if (MONGO_URI) return res.json({ logs: await Log.find().sort({ createdAt: -1 }).limit(100).lean() });
+    res.json({ logs: memLogs.slice(-100).reverse() });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STATUS ENDPOINT
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/status', (req, res) => {
+  res.json({
+    status: 'operational',
+    version: '5.0.0',
+    uptime: Math.floor(process.uptime()),
+    db: MONGO_URI ? 'connected' : 'in-memory',
+    services: {
+      api: 'operational',
+      ai: ANTHROPIC_API_KEY || OPENAI_API_KEY ? 'operational' : 'no-provider',
+      payments: PAYSTACK_SECRET ? 'operational' : 'demo-mode',
+      auth: 'operational',
+      storage: MONGO_URI ? 'mongodb' : 'memory',
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONTACT FORM
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/contact', async (req, res) => {
+  const { name, email, subject, message } = req.body;
+  if (!email || !message) return res.status(400).json({ error: 'Email and message required' });
+  try {
+    // Store contact submission
+    if (MONGO_URI) {
+      await mongoose.model('TAContact', new mongoose.Schema({ name: String, email: String, subject: String, message: String, createdAt: Date }, { timestamps: true })).create({ name, email, subject, message });
+    }
+    res.json({ ok: true, message: 'Message received. We will get back to you soon.' });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHANGELOG
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/changelog', (req, res) => {
+  res.json({
+    entries: [
+      { version: '5.0.0', date: '2026-07-21', title: 'Major Feature Update', changes: ['Branching conversations', 'Keyboard shortcuts', 'Multi-language support', '2FA authentication', 'Session management', 'Analytics dashboard', 'GDPR data export'] },
+      { version: '4.0.0', date: '2026-07-21', title: 'Power Features', changes: ['Streaming responses', 'Code execution', 'Conversation memory', 'Image generation', 'Text-to-speech', 'Chat folders'] },
+      { version: '3.0.0', date: '2026-07-21', title: 'Platform Features', changes: ['Google social login', 'Multi-model switching', 'Web search', 'Templates library', 'Team accounts'] },
+      { version: '2.0.0', date: '2026-07-21', title: 'Monetization', changes: ['Paystack payments', 'File upload', 'Referral system', 'Chat sharing', 'Export chats', 'Developer API', 'PWA'] },
+      { version: '1.0.0', date: '2026-07-21', title: 'Launch', changes: ['AI chat', 'User auth', 'Admin dashboard', 'Dark mode', 'Usage limits'] },
+    ]
+  });
+});
+
+app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '5.0.0', db: MONGO_URI ? 'mongodb' : 'memory', features: ['chat','upload','share','export','referrals','payments','api','social-login','multi-model','web-search','templates','teams','streaming','code-exec','memory','image-gen','tts','folders','branching','shortcuts','translate','2fa','sessions','analytics','search','pin','archive','edit-resend','reactions','alerts','audit','status','contact','changelog'], uptime: Math.floor(process.uptime()) }));
 
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) res.sendFile(path.join(__dirname, '..', 'index.html'));

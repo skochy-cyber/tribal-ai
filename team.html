@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Team</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--red:#ef4444;--r:12px;--shadow:0 4px 20px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+nav{height:64px;display:flex;align-items:center;padding:0 6%;background:rgba(15,14,11,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
+.nav-links{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-links a{font-size:.82rem;color:var(--ink3);text-decoration:none;font-weight:500;padding:.42rem .9rem;border-radius:10px;transition:.15s}
+.nav-links a:hover{background:var(--bg3);color:var(--ink)}
+.btn-nav{background:var(--accent)!important;color:#fff!important;padding:.42rem 1rem!important}
+.btn-nav:hover{background:var(--accent2)!important}
+
+.page{padding:60px 6% 80px;max-width:900px;margin:0 auto}
+.page-header{margin-bottom:40px}
+.page-header h1{font-family:'Instrument Serif',serif;font-size:clamp(1.8rem,3vw,2.4rem);font-weight:400;margin-bottom:8px}
+.page-header h1 em{color:var(--accent);font-style:italic}
+.page-header p{color:var(--ink3);font-size:.9rem;line-height:1.6}
+
+.team-info{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:32px}
+.team-info h3{font-size:1rem;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.team-name-row{display:flex;gap:12px;align-items:center}
+.team-name-row input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--bg3);color:var(--ink);font:inherit;font-size:.9rem;outline:none;transition:.15s}
+.team-name-row input:focus{border-color:var(--accent)}
+
+.invite-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:32px}
+.invite-section h3{font-size:1rem;font-weight:600;margin-bottom:16px}
+.invite-row{display:flex;gap:12px}
+.invite-row input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--bg3);color:var(--ink);font:inherit;font-size:.9rem;outline:none;transition:.15s}
+.invite-row input:focus{border-color:var(--accent)}
+.btn{padding:10px 20px;border:none;border-radius:var(--r);font:inherit;font-weight:600;font-size:.88rem;cursor:pointer;transition:.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:transparent;color:var(--ink3);border:1.5px solid var(--border2)}
+.btn-outline:hover{background:var(--bg3);color:var(--ink)}
+.btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.btn-danger:hover{background:rgba(239,68,68,.2)}
+
+.members{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px}
+.members h3{font-size:1rem;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.member-list{display:flex;flex-direction:column;gap:2px}
+.member{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.member:last-child{border-bottom:none}
+.member-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:.82rem;flex-shrink:0}
+.member-info{flex:1;min-width:0}
+.member-name{font-size:.88rem;font-weight:600}
+.member-email{font-size:.78rem;color:var(--ink4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.member-role{font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:12px;flex-shrink:0}
+.role-owner{background:var(--accent-bg);color:var(--accent)}
+.role-admin{background:rgba(59,130,246,.1);color:#3b82f6}
+.role-member{background:var(--bg3);color:var(--ink3)}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 20px;font-size:.84rem;color:var(--ink2);box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideIn .3s ease;z-index:300}
+.toast.ok{border-color:rgba(34,197,94,.3)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:768px){.invite-row{flex-direction:column}.team-name-row{flex-direction:column}.page{padding:40px 6% 60px}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-links">
+    <a href="/">Chat</a>
+    <a href="login.html">Sign in</a>
+    <a class="btn-nav" href="signup.html">Get Started</a>
+  </div>
+</nav>
+
+<section class="page">
+  <div class="page-header">
+    <h1>Team <em>Management</em></h1>
+    <p>Collaborate with your team. Invite members, manage roles, and share AI conversations.</p>
+  </div>
+
+  <div class="team-info">
+    <h3>🏢 Your Team</h3>
+    <div class="team-name-row">
+      <input type="text" id="teamName" placeholder="Team name" value="My Team">
+      <button class="btn btn-primary" onclick="saveTeamName()">Save</button>
+    </div>
+  </div>
+
+  <div class="invite-section">
+    <h3>Invite Members</h3>
+    <div class="invite-row">
+      <input type="email" id="inviteEmail" placeholder="colleague@company.com">
+      <button class="btn btn-primary" onclick="inviteMember()">Send Invite</button>
+    </div>
+    <p style="font-size:.78rem;color:var(--ink4);margin-top:8px">They'll receive an email invitation to join your team.</p>
+  </div>
+
+  <div class="members">
+    <h3>Members <span id="memberCount" style="font-size:.82rem;color:var(--ink4);font-weight:400">3</span></h3>
+    <div class="member-list" id="memberList"></div>
+  </div>
+</section>
+
+<footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
+
+<script>
+const members = [
+  {name:"Obasanjo Samuel",email:"obasanjo@tribaltech.io",role:"owner",color:"var(--accent)"},
+  {name:"Adeola Johnson",email:"adeola@tribaltech.io",role:"admin",color:"#3b82f6"},
+  {name:"Chioma Nwosu",email:"chioma@tribaltech.io",role:"member",color:"var(--green)"},
+];
+
+function renderMembers(){
+  const el = document.getElementById('memberList');
+  document.getElementById('memberCount').textContent = members.length;
+  el.innerHTML = members.map(m=>`
+    <div class="member">
+      <div class="member-avatar" style="background:${m.color}">${m.name[0]}</div>
+      <div class="member-info">
+        <div class="member-name">${m.name}</div>
+        <div class="member-email">${m.email}</div>
+      </div>
+      <span class="member-role role-${m.role}">${m.role.charAt(0).toUpperCase()+m.role.slice(1)}</span>
+      ${m.role!=='owner'?`<button class="btn btn-danger" style="padding:6px 12px;font-size:.78rem" onclick="removeMember('${m.email}')">Remove</button>`:''}
+    </div>
+  `).join('');
+}
+
+function inviteMember(){
+  const email = document.getElementById('inviteEmail').value.trim();
+  if(!email||!email.includes('@')) return toast('Enter a valid email');
+  if(members.find(m=>m.email===email)) return toast('Already a member');
+  members.push({name:email.split('@')[0],email,role:'member',color:'var(--ink4)'});
+  document.getElementById('inviteEmail').value='';
+  renderMembers();
+  toast('Invitation sent!');
+}
+
+function removeMember(email){
+  const i = members.findIndex(m=>m.email===email);
+  if(i>-1){members.splice(i,1);renderMembers();toast('Member removed');}
+}
+
+function saveTeamName(){toast('Team name saved!');}
+
+function toast(msg){
+  const el=document.createElement('div');el.className='toast ok';el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},3000);
+}
+
+renderMembers();
+</script>
+</body>
+</html>

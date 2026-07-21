@@ -505,6 +505,15 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
   </div>
 </div>
 
+<!-- SEARCH BAR -->
+<div id="searchBar" style="display:none;position:fixed;top:56px;left:260px;right:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;z-index:50">
+  <div style="max-width:768px;margin:0 auto;display:flex;gap:8px">
+    <input type="text" id="searchInput" placeholder="Search chats... (Ctrl+F)" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--ink);font:inherit;font-size:.88rem;outline:none" oninput="searchChats(this.value)">
+    <button class="topbar-btn" onclick="toggleSearch()">✕</button>
+  </div>
+  <div id="searchResults" style="max-width:768px;margin:8px auto 0"></div>
+</div>
+
 <div class="toast-wrap" id="toasts"></div>
 
 <input type="file" id="fileInputCamera" style="display:none" accept="image/*" capture="environment" onchange="handleFiles(this.files)">
@@ -718,10 +727,16 @@ async function loadChats() {
 
 function renderChatList() {
   const el = document.getElementById('chatList');
-  el.innerHTML = chats.map(c => `
+  const sorted = [...chats].sort((a,b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  el.innerHTML = sorted.filter(c => !c.archived).map(c => `
     <div class="chat-item ${c._id === activeChatId ? 'active' : ''}" onclick="openChat('${c._id}')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      ${esc(c.title)}
+      ${c.pinned ? '📌 ' : ''}${esc(c.title)}
+      <span style="margin-left:auto;display:flex;gap:4px;opacity:0;transition:.15s" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0">
+        <button onclick="togglePin('${c._id}',event)" style="background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--ink4)">📌</button>
+        <button onclick="toggleArchive('${c._id}',event)" style="background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--ink4)">📦</button>
+        <button onclick="deleteChat('${c._id}',event)" style="background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--ink4)">🗑</button>
+      </span>
     </div>
   `).join('');
 }
@@ -1016,13 +1031,59 @@ async function saveInstructions() {
 }
 
 // ── UI Helpers ──────────────────────────────────────────────────────────
+// ── F1: Search ──────────────────────────────────────────────────────────────
+function toggleSearch() {
+  const bar = document.getElementById('searchBar');
+  bar.style.display = bar.style.display === 'none' ? 'block' : 'none';
+  if (bar.style.display === 'block') document.getElementById('searchInput').focus();
+}
+async function searchChats(q) {
+  const el = document.getElementById('searchResults');
+  if (!q.trim()) { el.innerHTML = ''; return; }
+  try {
+    const r = await fetch(`${API}/api/chats/search/${encodeURIComponent(q)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) {
+      const data = await r.json();
+      el.innerHTML = (data.results || []).map(c => `<div class="chat-item" onclick="openChat('${c._id}');toggleSearch()" style="margin:4px 0">${esc(c.title)}</div>`).join('') || '<div style="color:var(--ink4);font-size:.84rem;padding:8px">No results</div>';
+    }
+  } catch {}
+}
+
+// ── F2: Pin Chat ───────────────────────────────────────────────────────────
+async function togglePin(id, e) {
+  e.stopPropagation();
+  try {
+    const r = await fetch(`${API}/api/chats/${id}/pin`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) { toast('Chat pinned', 'ok'); loadChats(); }
+  } catch {}
+}
+
+// ── F3: Archive Chat ───────────────────────────────────────────────────────
+async function toggleArchive(id, e) {
+  e.stopPropagation();
+  try {
+    const r = await fetch(`${API}/api/chats/${id}/archive`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) { toast('Chat archived', 'ok'); loadChats(); }
+  } catch {}
+}
+
+// ── F5: Fullscreen ─────────────────────────────────────────────────────────
+function toggleFullscreen() {
+  const sidebar = document.getElementById('sidebar');
+  const topbar = document.querySelector('.topbar');
+  sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
+  topbar.style.display = topbar.style.display === 'none' ? 'flex' : 'none';
+}
+
+// ── Update keyboard shortcuts ──────────────────────────────────────────────
 function handleKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  // Keyboard shortcuts
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('inputBox').focus(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); newChat(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); toggleSidebar(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'e') { e.preventDefault(); exportChat(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); toggleSearch(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'j') { e.preventDefault(); toggleFullscreen(); }
   if (e.key === 'Escape') { closeAllModals(); }
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'L') { e.preventDefault(); toggleTheme(); }
 }
