@@ -172,6 +172,91 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 </style>
 </head>
 <body>
+<div style="display:none">
+<!-- SVG Icon Sprite for Tribal AI -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <!-- Chat -->
+  <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <!-- Code -->
+  <symbol id="icon-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol>
+  <!-- Image -->
+  <symbol id="icon-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+  <!-- Volume -->
+  <symbol id="icon-volume" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></symbol>
+  <!-- Globe -->
+  <symbol id="icon-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <!-- Lock -->
+  <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <!-- Download -->
+  <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <!-- Keyboard -->
+  <symbol id="icon-keyboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><line x1="6" y1="8" x2="6.01" y2="8"/><line x1="10" y1="8" x2="10.01" y2="8"/><line x1="14" y1="8" x2="14.01" y2="8"/><line x1="18" y1="8" x2="18.01" y2="8"/><line x1="8" y1="12" x2="8.01" y2="12"/><line x1="12" y1="12" x2="12.01" y2="12"/><line x1="16" y1="12" x2="16.01" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></symbol>
+  <!-- Split -->
+  <symbol id="icon-split" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></symbol>
+  <!-- Chart -->
+  <symbol id="icon-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol>
+  <!-- Palette -->
+  <symbol id="icon-palette" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="11.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="10" cy="18" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></symbol>
+  <!-- Trophy -->
+  <symbol id="icon-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+  <!-- Search -->
+  <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <!-- Document -->
+  <symbol id="icon-document" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  <!-- Star -->
+  <symbol id="icon-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+  <!-- Bell -->
+  <symbol id="icon-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+  <!-- Mic -->
+  <symbol id="icon-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></symbol>
+  <!-- Copy -->
+  <symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <!-- Check -->
+  <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></symbol>
+  <!-- X / Close -->
+  <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <!-- Alert -->
+  <symbol id="icon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <!-- Mail -->
+  <symbol id="icon-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></symbol>
+  <!-- Edit -->
+  <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
+  <!-- Trash -->
+  <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <!-- Pin -->
+  <symbol id="icon-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <!-- Archive -->
+  <symbol id="icon-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></symbol>
+  <!-- Share -->
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></symbol>
+  <!-- Zap / Lightning -->
+  <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <!-- Brain -->
+  <symbol id="icon-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2z"/></symbol>
+  <!-- Play -->
+  <symbol id="icon-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></symbol>
+  <!-- Map -->
+  <symbol id="icon-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></symbol>
+  <!-- Link -->
+  <symbol id="icon-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <!-- Upload -->
+  <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+  <!-- Settings / Gear -->
+  <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <!-- Users -->
+  <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <!-- Folder -->
+  <symbol id="icon-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <!-- Bookmark -->
+  <symbol id="icon-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+  <!-- Heart -->
+  <symbol id="icon-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+  <!-- Smile -->
+  <symbol id="icon-smile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></symbol>
+</svg>
+
+</div>
+
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
@@ -270,12 +355,12 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
       <h1>What can I <em>help</em> you with?</h1>
       <p>Chat with AI to write, code, analyze, research, and create. Powered by Claude & GPT.</p>
       <div class="quick-prompts">
-        <div class="quick-prompt" onclick="quickPrompt('Write a Python function to sort a list')"><span>🐍</span>Write Python code</div>
-        <div class="quick-prompt" onclick="quickPrompt('Explain quantum computing in simple terms')"><span>💡</span>Explain a concept</div>
-        <div class="quick-prompt" onclick="quickPrompt('Help me write a professional email')"><span>✍️</span>Write an email</div>
-        <div class="quick-prompt" onclick="quickPrompt('Analyze this data and give insights')"><span>📊</span>Analyze data</div>
-        <div class="quick-prompt" onclick="quickPrompt('Create a business plan for a tech startup')"><span>🚀</span>Business plan</div>
-        <div class="quick-prompt" onclick="quickPrompt('Debug this JavaScript code')"><span>🐛</span>Debug code</div>
+        <div class="quick-prompt" onclick="quickPrompt('Write a Python function to sort a list')"><span><svg class="icon" width="16" height="16"><use href="icons.svg#icon-code"/></svg></span>Write Python code</div>
+        <div class="quick-prompt" onclick="quickPrompt('Explain quantum computing in simple terms')"><span><svg class="icon" width="16" height="16"><use href="icons.svg#icon-zap"/></svg></span>Explain a concept</div>
+        <div class="quick-prompt" onclick="quickPrompt('Help me write a professional email')"><span><svg class="icon" width="16" height="16"><use href="icons.svg#icon-edit"/></svg></span>Write an email</div>
+        <div class="quick-prompt" onclick="quickPrompt('Analyze this data and give insights')"><span><svg class="icon" width="16" height="16"><use href="icons.svg#icon-chart"/></svg></span>Analyze data</div>
+        <div class="quick-prompt" onclick="quickPrompt('Create a business plan for a tech startup')"><span><svg class="icon" width="16" height="16"><use href="icons.svg#icon-zap"/></svg></span>Business plan</div>
+        <div class="quick-prompt" onclick="quickPrompt('Debug this JavaScript code')"><span><svg class="icon" width="16" height="16"><use href="icons.svg#icon-alert"/></svg></span>Debug code</div>
       </div>
     </div>
     <div class="chat-messages" id="chatMessages" style="display:none"></div>
@@ -347,12 +432,12 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
     <div style="margin-top:16px">
       <h3 style="font-size:.92rem;margin-bottom:12px">Theme</h3>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-        <button onclick="applyThemePreset('midnight')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#0f0e0b;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">🌙 Midnight</button>
-        <button onclick="applyThemePreset('ocean')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#0a1628;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">🌊 Ocean</button>
-        <button onclick="applyThemePreset('forest')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#0a1a0f;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">🌿 Forest</button>
-        <button onclick="applyThemePreset('royal')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#1a0a2e;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">👑 Royal</button>
-        <button onclick="applyThemePreset('sunset')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#1a1408;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">🌅 Sunset</button>
-        <button onclick="applyThemePreset('cherry')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#1a0a0a;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">🍒 Cherry</button>
+        <button onclick="applyThemePreset('midnight')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#0f0e0b;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">Midnight</button>
+        <button onclick="applyThemePreset('ocean')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#0a1628;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">Ocean</button>
+        <button onclick="applyThemePreset('forest')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#0a1a0f;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">Forest</button>
+        <button onclick="applyThemePreset('royal')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#1a0a2e;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">Royal</button>
+        <button onclick="applyThemePreset('sunset')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#1a1408;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">Sunset</button>
+        <button onclick="applyThemePreset('cherry')" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#1a0a0a;color:#f9f8f6;font:inherit;font-size:.82rem;cursor:pointer">Cherry</button>
       </div>
       <h3 style="font-size:.92rem;margin-bottom:12px">Custom Instructions</h3>
       <textarea id="customInstructions" placeholder="e.g. You are a senior Python developer. Always write clean, well-commented code." style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--ink);font:inherit;font-size:.88rem;outline:none;min-height:80px;resize:vertical"></textarea>
@@ -477,7 +562,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 <!-- ANALYTICS MODAL -->
 <div class="modal-bg" id="analyticsModal">
   <div class="modal" style="max-width:500px">
-    <h2>📊 Your Analytics</h2>
+    <h2><svg class="icon" width="16" height="16"><use href="icons.svg#icon-chart"/></svg> Your Analytics</h2>
     <div id="analyticsContent" style="padding:16px 0"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeAllModals()">Close</button>
@@ -488,7 +573,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 <!-- SESSIONS MODAL -->
 <div class="modal-bg" id="sessionsModal">
   <div class="modal" style="max-width:500px">
-    <h2>🔐 Active Sessions</h2>
+    <h2><svg class="icon" width="16" height="16"><use href="icons.svg#icon-lock"/></svg> Active Sessions</h2>
     <div id="sessionsContent" style="max-height:300px;overflow-y:auto;margin:16px 0"></div>
     <div class="modal-actions">
       <button class="btn btn-danger" onclick="revokeAllSessions()" style="background:rgba(239,68,68,.1);color:var(--accent);border:1px solid rgba(200,75,9,.2)">Revoke All</button>
@@ -500,7 +585,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 <!-- TRANSLATE MODAL -->
 <div class="modal-bg" id="translateModal">
   <div class="modal">
-    <h2>🌍 Translate</h2>
+    <h2><svg class="icon" width="16" height="16"><use href="icons.svg#icon-globe"/></svg> Translate</h2>
     <div class="fg">
       <label>Text</label>
       <textarea id="translateText" placeholder="Text to translate"></textarea>
@@ -533,7 +618,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 <!-- BRANCH MODAL -->
 <div class="modal-bg" id="branchModal">
   <div class="modal" style="max-width:500px">
-    <h2>🔀 Branch Chat</h2>
+    <h2><svg class="icon" width="16" height="16"><use href="icons.svg#icon-split"/></svg> Branch Chat</h2>
     <p>Fork this conversation from a specific message to explore a different direction.</p>
     <div class="fg">
       <label>Branch from message #</label>
@@ -550,7 +635,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 <div id="searchBar" style="display:none;position:fixed;top:56px;left:260px;right:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;z-index:50">
   <div style="max-width:768px;margin:0 auto;display:flex;gap:8px">
     <input type="text" id="searchInput" placeholder="Search chats... (Ctrl+F)" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--ink);font:inherit;font-size:.88rem;outline:none" oninput="searchChats(this.value)">
-    <button class="topbar-btn" onclick="toggleSearch()">✕</button>
+    <button class="topbar-btn" onclick="toggleSearch()"><svg class="icon" width="16" height="16"><use href="icons.svg#icon-x"/></svg></button>
   </div>
   <div id="searchResults" style="max-width:768px;margin:8px auto 0"></div>
 </div>
@@ -558,7 +643,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 <div class="toast-wrap" id="toasts"></div>
 
 <!-- DRAG AND DROP OVERLAY -->
-<div class="drop-overlay"><span>📎 Drop files here to upload</span></div>
+<div class="drop-overlay"><span>Drop files here to upload</span></div>
 
 <!-- NOTIFICATION BELL (topbar) -->
 
@@ -593,7 +678,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 <!-- ACHIEVEMENTS MODAL -->
 <div class="modal-bg" id="achievementsModal">
   <div class="modal" style="max-width:500px">
-    <h2 style="margin-bottom:12px">🏆 Achievements</h2>
+    <h2 style="margin-bottom:12px"><svg class="icon" width="16" height="16"><use href="icons.svg#icon-trophy"/></svg> Achievements</h2>
     <p style="font-size:.84rem;color:var(--ink3);margin-bottom:16px">Track your progress and unlock badges.</p>
     <h3 style="font-size:.92rem;margin-bottom:8px">Earned</h3>
     <div id="earnedList"></div>
@@ -614,7 +699,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 <!-- IMPORT MODAL -->
 <div class="modal-bg" id="importModal">
   <div class="modal" style="max-width:420px">
-    <h2 style="margin-bottom:12px">📥 Import Chat</h2>
+    <h2 style="margin-bottom:12px"><svg class="icon" width="16" height="16"><use href="icons.svg#icon-download"/></svg> Import Chat</h2>
     <p style="font-size:.84rem;color:var(--ink3);margin-bottom:16px">Import from ChatGPT, Claude, or plain text.</p>
     <div class="fg"><label>Chat File (.json or .txt)</label><input type="file" id="importFile" accept=".json,.txt,.csv" class="fi"></div>
     <p style="font-size:.78rem;color:var(--ink4);margin-bottom:12px">Supports ChatGPT export format, Claude format, or plain text (alternating lines).</p>
@@ -625,7 +710,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 <!-- CUSTOM INSTRUCTIONS MODAL -->
 <div class="modal-bg" id="instructionsModal">
   <div class="modal" style="max-width:500px">
-    <h2 style="margin-bottom:8px">📝 Custom Instructions</h2>
+    <h2 style="margin-bottom:8px"><svg class="icon" width="16" height="16"><use href="icons.svg#icon-edit"/></svg> Custom Instructions</h2>
     <p style="font-size:.84rem;color:var(--ink3);margin-bottom:16px">Tell AI how to behave. These apply to all your conversations.</p>
     <textarea id="instructionsText" class="fi" rows="6" placeholder="Example: I'm a software engineer. Always respond with code examples. Use Python. Be concise." style="min-height:120px;resize:vertical"></textarea>
     <p style="font-size:.78rem;color:var(--ink4);margin:8px 0 12px">Saved automatically. Max 500 characters.</p>
@@ -636,7 +721,7 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
 <!-- SHORTCUTS MODAL -->
 <div class="modal-bg" id="shortcutsModal">
   <div class="modal" style="max-width:480px">
-    <h2 style="margin-bottom:16px">⌨️ Keyboard Shortcuts</h2>
+    <h2 style="margin-bottom:16px"><svg class="icon" width="16" height="16"><use href="icons.svg#icon-keyboard"/></svg> Keyboard Shortcuts</h2>
     <div style="display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:.88rem">New Chat</span><kbd style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem">Ctrl+N</kbd></div>
       <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:.88rem">Search</span><kbd style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem">Ctrl+K</kbd></div>
@@ -747,7 +832,7 @@ async function loadStreak() {
     const r = await fetch(`${API}/api/streak`, { headers: { 'Authorization': `Bearer ${token}` } });
     const data = await r.json();
     if (data.streak > 0) {
-      document.getElementById('usageBadge').textContent = `🔥 ${data.streak} day streak`;
+      document.getElementById('usageBadge').textContent = `${icon('zap')} ${data.streak} day streak`;
     }
   } catch {}
 }
@@ -785,7 +870,7 @@ async function loadModels() {
       const data = await r.json();
       availableModels = data.models || [];
       const select = document.getElementById('modelSelect');
-      select.innerHTML = availableModels.map(m => `<option value="${m.id}" ${m.id === data.current ? 'selected' : ''}>${m.name}${m.tier === 'pro' ? ' ⭐' : ''}</option>`).join('');
+      select.innerHTML = availableModels.map(m => `<option value="${m.id}" ${m.id === data.current ? 'selected' : ''}>${m.name}${m.tier === 'pro' ? ' ' + icon('star') : ''}</option>`).join('');
     }
   } catch {}
 }
@@ -932,11 +1017,11 @@ function renderChatList() {
   el.innerHTML = sorted.filter(c => !c.archived).map(c => `
     <div class="chat-item ${c._id === activeChatId ? 'active' : ''}" onclick="openChat('${c._id}')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      ${c.pinned ? '📌 ' : ''}${esc(c.title)}
+      ${c.pinned ? icon('pin') + ' ' : ''}${esc(c.title)}
       <span style="margin-left:auto;display:flex;gap:4px;opacity:0;transition:.15s" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0">
-        <button onclick="togglePin('${c._id}',event)" style="background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--ink4)">📌</button>
-        <button onclick="toggleArchive('${c._id}',event)" style="background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--ink4)">📦</button>
-        <button onclick="deleteChat('${c._id}',event)" style="background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--ink4)">🗑</button>
+        <button onclick="togglePin('${c._id}',event)" style="background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--ink4)">${icon('pin')}</button>
+        <button onclick="toggleArchive('${c._id}',event)" style="background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--ink4)">${icon('archive')}</button>
+        <button onclick="deleteChat('${c._id}',event)" style="background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--ink4)">${icon('trash')}</button>
       </span>
     </div>
   `).join('');
@@ -989,7 +1074,7 @@ async function sendMessage() {
   // Show user message
   if (msg) appendMsg('user', msg);
   if (pendingFiles.length) {
-    pendingFiles.forEach(f => appendMsg('user', `📎 ${f.name}`));
+    pendingFiles.forEach(f => appendMsg('user', icon('upload') + ` ${f.name}`));
     clearFiles();
   }
 
@@ -1026,9 +1111,9 @@ async function sendMessage() {
 
     hideTyping();
     if (!r.ok && data.limitReached) {
-      appendMsg('assistant', `⚠️ ${data.error}\n\n[Upgrade to Pro](pricing.html) for unlimited messages.`);
+      appendMsg('assistant', icon('alert') + ` ${data.error}\n\n[Upgrade to Pro](pricing.html) for unlimited messages.`);
     } else if (data.error) {
-      appendMsg('assistant', `❌ Error: ${data.error}`);
+      appendMsg('assistant', icon('x') + ` Error: ${data.error}`);
     } else {
       appendMsg('assistant', data.response);
       if (!activeChatId && data.chatId) { activeChatId = data.chatId; loadChats(); }
@@ -1038,7 +1123,7 @@ async function sendMessage() {
     }
   } catch (e) {
     hideTyping();
-    appendMsg('assistant', '❌ Network error. Please try again.');
+    appendMsg('assistant', icon('x') + ' Network error. Please try again.');
   }
   busy = false;
   scrollToBottom();
@@ -1055,11 +1140,11 @@ function appendMsg(role, content) {
     <div class="msg-avatar">${avatar}</div>
     <div class="msg-content">${rendered}</div>
     <div class="msg-actions">
-      <button onclick="copyMsgContent(this)" title="Copy">📋</button>
-      <button onclick="reactToMsg('${msgId}','👍')" title="Like">👍</button>
-      <button onclick="reactToMsg('${msgId}','❤️')" title="Love">❤️</button>
-      <button onclick="reactToMsg('${msgId}','😂')" title="Funny">😂</button>
-      <button onclick="bookmarkMsg('${msgId}','${esc(content).slice(0,100)}')" title="Bookmark">⭐</button>
+      <button onclick="copyMsgContent(this)" title="Copy">${icon('copy')}</button>
+      <button onclick="reactToMsg('${msgId}','👍')" title="Like">${icon('zap')}</button>
+      <button onclick="reactToMsg('${msgId}','heart')" title="Love">${icon('heart')}</button>
+      <button onclick="reactToMsg('${msgId}','smile')" title="Funny">${icon('smile')}</button>
+      <button onclick="bookmarkMsg('${msgId}','${esc(content).slice(0,100)}')" title="Bookmark">${icon('star')}</button>
     </div>
     <div class="msg-reactions" id="reactions_${msgId}"></div>
   `;
@@ -1109,7 +1194,7 @@ function renderFileStrip() {
     <div class="file-chip">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       ${esc(f.name)}
-      <span class="rm" onclick="removeFile(${i})">✕</span>
+      <span class="rm" onclick="removeFile(${i})">${icon('x')}</span>
     </div>
   `).join('');
 }
@@ -1310,35 +1395,35 @@ function handleKey(e) {
 
 // ── Command Palette ───────────────────────────────────────────────────────
 const commands = [
-  { name: 'New Chat', icon: '💬', action: 'newChat()' },
-  { name: 'Toggle Sidebar', icon: '📋', action: 'toggleSidebar()' },
-  { name: 'Search Chats', icon: '🔍', action: 'toggleSearch()' },
-  { name: 'Toggle Theme', icon: '🌙', action: 'toggleTheme()' },
-  { name: 'Export Chat', icon: '📤', action: 'exportChat()' },
-  { name: 'Settings', icon: '⚙️', action: 'showSettings()' },
-  { name: 'Personas', icon: '🎭', action: 'showPersonaModal()' },
-  { name: 'Prompt Library', icon: '📚', action: 'showPromptModal()' },
-  { name: 'Achievements', icon: '🏆', action: 'showAchievementsModal()' },
-  { name: 'Memory', icon: '🧠', action: 'showMemory()' },
-  { name: 'Referrals', icon: '👥', action: 'showReferralModal()' },
-  { name: 'Upgrade to Pro', icon: '⭐', action: 'showPayment()' },
-  { name: 'Voice Input', icon: '🎤', action: 'startVoiceInput()' },
-  { name: 'Import Chat', icon: '📥', action: 'showImportModal()' },
-  { name: 'Custom Instructions', icon: '📝', action: 'showInstructionsModal()' },
-  { name: 'Dashboard', icon: '📊', action: 'window.location="dashboard.html"' },
-  { name: 'API Docs', icon: '📖', action: 'window.location="api-docs.html"' },
-  { name: 'Keyboard Shortcuts', icon: '⌨️', action: 'showShortcutsModal()' },
-  { name: 'Compare Models', icon: '🔀', action: 'toggleCompare()' },
-  { name: 'Execute Code', icon: '▶️', action: 'showShortcutsModal()' },
-  { name: 'Generate Image', icon: '🎨', action: 'showShortcutsModal()' },
-  { name: 'Sentiment Analysis', icon: '😊', action: 'showShortcutsModal()' },
-  { name: 'Optimize Prompt', icon: '✨', action: 'showShortcutsModal()' },
-  { name: 'Get Embed Code', icon: '🔗', action: 'showEmbedModal()' },
-  { name: 'Import Chat', icon: '📥', action: 'showImportModal()' },
-  { name: 'Custom Instructions', icon: '📝', action: 'showInstructionsModal()' },
-  { name: 'Split View', icon: '🔲', action: 'toggleSplitView()' },
-  { name: 'Start Tour', icon: '🗺️', action: 'startTour()' },
-  { name: 'Notifications', icon: '🔔', action: 'showNotifications()' }
+  { name: 'New Chat', icon: 'chat', action: 'newChat()' },
+  { name: 'Toggle Sidebar', icon: 'copy', action: 'toggleSidebar()' },
+  { name: 'Search Chats', icon: 'search', action: 'toggleSearch()' },
+  { name: 'Toggle Theme', icon: 'zap', action: 'toggleTheme()' },
+  { name: 'Export Chat', icon: 'download', action: 'exportChat()' },
+  { name: 'Settings', icon: 'settings', action: 'showSettings()' },
+  { name: 'Personas', icon: 'palette', action: 'showPersonaModal()' },
+  { name: 'Prompt Library', icon: 'document', action: 'showPromptModal()' },
+  { name: 'Achievements', icon: 'trophy', action: 'showAchievementsModal()' },
+  { name: 'Memory', icon: 'brain', action: 'showMemory()' },
+  { name: 'Referrals', icon: 'users', action: 'showReferralModal()' },
+  { name: 'Upgrade to Pro', icon: 'star', action: 'showPayment()' },
+  { name: 'Voice Input', icon: 'mic', action: 'startVoiceInput()' },
+  { name: 'Import Chat', icon: 'download', action: 'showImportModal()' },
+  { name: 'Custom Instructions', icon: 'edit', action: 'showInstructionsModal()' },
+  { name: 'Dashboard', icon: 'chart', action: 'window.location="dashboard.html"' },
+  { name: 'API Docs', icon: 'document', action: 'window.location="api-docs.html"' },
+  { name: 'Keyboard Shortcuts', icon: 'keyboard', action: 'showShortcutsModal()' },
+  { name: 'Compare Models', icon: 'split', action: 'toggleCompare()' },
+  { name: 'Execute Code', icon: 'play', action: 'showShortcutsModal()' },
+  { name: 'Generate Image', icon: 'palette', action: 'showShortcutsModal()' },
+  { name: 'Sentiment Analysis', icon: 'smile', action: 'showShortcutsModal()' },
+  { name: 'Optimize Prompt', icon: 'zap', action: 'showShortcutsModal()' },
+  { name: 'Get Embed Code', icon: 'link', action: 'showEmbedModal()' },
+  { name: 'Import Chat', icon: 'download', action: 'showImportModal()' },
+  { name: 'Custom Instructions', icon: 'edit', action: 'showInstructionsModal()' },
+  { name: 'Split View', icon: 'split', action: 'toggleSplitView()' },
+  { name: 'Start Tour', icon: 'map', action: 'startTour()' },
+  { name: 'Notifications', icon: 'bell', action: 'showNotifications()' }
 ];
 
 function toggleCommandPalette() {
@@ -1353,7 +1438,7 @@ function closeCommandPalette() { document.getElementById('commandPalette')?.clas
 function filterCommands(q) {
   const filtered = commands.filter(c => c.name.toLowerCase().includes(q.toLowerCase()));
   document.getElementById('cmdList').innerHTML = filtered.map(c => 
-    `<div class="cmd-item" onclick="runCmd('${c.action}')">${c.icon} ${c.name}</div>`
+    `<div class="cmd-item" onclick="runCmd('${c.action}')">${icon(c.icon)} ${c.name}</div>`
   ).join('') || '<div style="padding:12px;color:var(--ink4);text-align:center">No commands found</div>';
 }
 function runCmd(action) { closeCommandPalette(); eval(action); }
@@ -1373,7 +1458,7 @@ function startVoiceInput() {
       toast('Voice input: connect OpenAI Whisper for full support', 'ok');
     };
     mediaRecorder.start();
-    toast('🎙️ Recording... Click mic again to stop', 'ok');
+    toast('Recording... Click mic again to stop', 'ok');
     // Auto-stop after 30 seconds
     setTimeout(() => { if (mediaRecorder?.state === 'recording') mediaRecorder.stop(); }, 30000);
   }).catch(() => toast('Microphone access denied', 'err'));
@@ -1541,7 +1626,7 @@ async function analyzeSentiment(text) {
     });
     if (r.ok) {
       const data = await r.json();
-      const emoji = data.sentiment === 'positive' ? '😊' : data.sentiment === 'negative' ? '😔' : '😐';
+      const emoji = data.sentiment === 'positive' ? 'Positive' : data.sentiment === 'negative' ? 'Negative' : 'Neutral';
       toast(`Sentiment: ${emoji} ${data.sentiment} (${data.confidence}% confidence)`, 'ok');
     }
   } catch {}
@@ -1993,15 +2078,15 @@ function reactToMsg(msgId, emoji) {
 function copyMsgContent(btn) {
   const content = btn.closest('.msg').querySelector('.msg-content').textContent;
   navigator.clipboard.writeText(content);
-  btn.textContent = '✅';
-  setTimeout(() => btn.textContent = '📋', 1500);
+  btn.innerHTML = icon('check');
+  setTimeout(() => btn.innerHTML = icon('copy'), 1500);
 }
 function bookmarkMsg(msgId, preview) {
   if (!token) return showAuth('login');
   fetch(`${API}/api/bookmarks`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
     body: JSON.stringify({ chatId: activeChatId, messageId: msgId, content: preview })
-  }).then(r => r.json()).then(d => { if (d.ok) toast('⭐ Bookmarked!', 'ok'); });
+  }).then(r => r.json()).then(d => { if (d.ok) toast('Bookmarked!', 'ok'); });
 }
 
 // ═══ NOTIFICATION BELL ═════════════════════════════════════════════════════
@@ -2031,11 +2116,11 @@ document.addEventListener('drop', e => {
 // ═══ ONBOARDING TOUR ═══════════════════════════════════════════════════════
 let tourStep = 0;
 const tourSteps = [
-  { title: '💬 Welcome!', text: 'Start chatting with AI. Type any message below.', target: '.input-area', pos: 'top' },
-  { title: '🤖 Choose Model', text: 'Pick different AI models from the top bar.', target: '#modelSelect', pos: 'bottom' },
-  { title: '📋 Sidebar', text: 'Your chats are saved here. Create folders to organize.', target: '#sidebar', pos: 'right' },
-  { title: '🎨 Themes', text: 'Switch themes in Settings. Try Midnight, Ocean, or Royal!', target: '.topbar-right', pos: 'bottom' },
-  { title: '🚀 Ready!', text: 'You're all set! Explore more in the command palette (Ctrl+K).', target: null, pos: 'center' }
+  { title: 'Welcome!', text: 'Start chatting with AI. Type any message below.', target: '.input-area', pos: 'top' },
+  { title: 'Choose Model', text: 'Pick different AI models from the top bar.', target: '#modelSelect', pos: 'bottom' },
+  { title: 'Sidebar', text: 'Your chats are saved here. Create folders to organize.', target: '#sidebar', pos: 'right' },
+  { title: 'Themes', text: 'Switch themes in Settings. Try Midnight, Ocean, or Royal!', target: '.topbar-right', pos: 'bottom' },
+  { title: 'Ready!', text: 'You're all set! Explore more in the command palette (Ctrl+K).', target: null, pos: 'center' }
 ];
 function startTour() {
   tourStep = 0;
@@ -2132,7 +2217,7 @@ async function showPersonaModal() {
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:1.5rem">${p.avatar}</span>
             <div><strong>${p.name}</strong><br><span style="font-size:.78rem;color:var(--ink3)">${p.category}</span></div>
-            ${activePersona===p.id?'<span style="margin-left:auto;color:var(--accent)">✓ Active</span>':''}
+            ${activePersona===p.id?'<span style="margin-left:auto;color:var(--accent)">${icon('check')} Active</span>':''}
           </div>
         </div>`
       ).join('');
@@ -2193,12 +2278,12 @@ async function showAchievementsModal() {
         `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px">
           <span style="font-size:1.5rem">${a.icon}</span>
           <div><strong>${a.name}</strong><br><span style="font-size:.82rem;color:var(--ink3)">${a.desc}</span></div>
-          <span style="margin-left:auto;color:var(--green);font-size:.82rem">✓ Earned</span>
+          <span style="margin-left:auto;color:var(--green);font-size:.82rem">${icon('check')} Earned</span>
         </div>`
       ).join('') || '<div style="text-align:center;color:var(--ink4);padding:20px">No achievements yet. Keep chatting!</div>';
       document.getElementById('lockedList').innerHTML = data.locked.map(a => 
         `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;opacity:.5">
-          <span style="font-size:1.5rem">🔒</span>
+          <span style="font-size:1.5rem">${icon('lock')}</span>
           <div><strong>${a.name}</strong><br><span style="font-size:.82rem;color:var(--ink3)">${a.desc}</span></div>
         </div>`
       ).join('');
@@ -2269,6 +2354,8 @@ async function shareChat() {
 
 // ═══ LOAD PERSONA ON START ═════════════════════════════════════════════
 activePersona = localStorage.getItem('ta_persona') || 'default';
+// ── Icon helper ────────────────────────────────────────────────────────────
+function icon(name){return '<svg class="icon" width="16" height="16"><use href="icons.svg#icon-'+name+'"/></svg>'}
 </script>
 </body>
 </html>
