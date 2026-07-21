@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tribal AI Admin — User Feedback</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>:root{--bg:#fff;--bg2:#f8f9fa;--bg3:#f1f3f5;--surface:#fff;--border:#e5e7eb;--ink:#111827;--ink2:#374151;--ink3:#6b7280;--ink4:#9ca3af;--accent:#c84b09;--green:#059669;--red:#dc2626;--blue:#2563eb;--yellow:#d97706;--r:8px}*{box-sizing:border-box;margin:0;padding:0}body{display:flex;min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif}.sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);padding:16px 0;display:flex;flex-direction:column;position:fixed;height:100vh}.sidebar-brand{padding:0 16px 16px;display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:600;font-size:.88rem;border-bottom:1px solid var(--border)}.mark{width:28px;height:28px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff;font-weight:700;font-size:.75rem}.sidebar-nav{flex:1;padding:8px}.sidebar-nav a{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;color:var(--ink3);text-decoration:none;font-size:.82rem;margin-bottom:2px;transition:.15s}.sidebar-nav a:hover{background:var(--bg3);color:var(--ink)}.sidebar-nav a.active{background:var(--accent);color:#fff}.sidebar-nav svg{width:16px;height:16px;flex-shrink:0}.main{margin-left:240px;flex:1;padding:24px}.header{margin-bottom:20px}.header h1{font-size:1.3rem;font-weight:600}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px}.card h3{font-size:.76rem;font-weight:600;color:var(--ink4);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}.card .val{font-size:1.6rem;font-weight:700}.card .sub{font-size:.74rem;color:var(--ink4);margin-top:2px}.ticket{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;transition:.15s}.ticket:hover{border-color:var(--border2)}.ticket-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}.ticket-avatar{width:28px;height:28px;border-radius:50%;background:var(--bg3);display:grid;place-items:center;font-size:.7rem;font-weight:600;color:var(--ink3)}.ticket-meta{flex:1}.ticket-meta strong{font-size:.84rem;display:block}.ticket-meta span{font-size:.72rem;color:var(--ink4)}.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:600}.badge-green{background:rgba(5,150,105,.08);color:var(--green)}.badge-red{background:rgba(220,38,38,.08);color:var(--red)}.badge-blue{background:rgba(37,99,235,.08);color:var(--blue)}.badge-yellow{background:rgba(217,119,6,.08);color:var(--yellow)}.ticket-body{font-size:.84rem;color:var(--ink2);line-height:1.5;margin-bottom:10px}.ticket-actions{display:flex;gap:6px}.btn{padding:5px 12px;border-radius:5px;border:none;font:inherit;font-weight:500;font-size:.76rem;cursor:pointer;transition:.15s}.btn-accent{background:var(--accent);color:#fff}.btn-secondary{background:var(--bg3);color:var(--ink2);border:1px solid var(--border)}.rating{color:var(--yellow);font-size:.82rem}</style>
+</head>
+<body>
+<aside class="sidebar">
+  <a class="sidebar-brand" href="admin-dashboard.html"><span class="mark">T</span><span>Admin</span></a>
+  <nav class="sidebar-nav">
+    <a href="admin-dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+    <a href="admin-users.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Users</a>
+    <a href="admin-chats.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chats</a>
+    <a href="admin-payments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Payments</a>
+    <a href="admin-revenue.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Revenue</a>
+    <a href="admin-models.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Models</a>
+    <a href="admin-analytics.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
+    <a href="admin-feedback.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Feedback</a>
+    <a href="admin-settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</a>
+  </nav>
+</aside>
+<div class="main">
+  <div class="header"><h1>User Feedback & Support</h1></div>
+  <div class="cards">
+    <div class="card"><h3>Open Tickets</h3><div class="val" style="color:var(--yellow)">7</div><div class="sub">Awaiting response</div></div>
+    <div class="card"><h3>Resolved Today</h3><div class="val" style="color:var(--green)">12</div><div class="sub">+3 vs yesterday</div></div>
+    <div class="card"><h3>Avg Response Time</h3><div class="val">2.4h</div><div class="sub">First response</div></div>
+    <div class="card"><h3>Satisfaction</h3><div class="val">4.6/5</div><div class="sub">From 89 reviews</div></div>
+  </div>
+  <div class="ticket">
+    <div class="ticket-header">
+      <div class="ticket-avatar">AO</div>
+      <div class="ticket-meta"><strong>Adedotun Ogundimu</strong><span>2 hours ago · Bug Report</span></div>
+      <span class="badge badge-red">Urgent</span>
+    </div>
+    <div class="ticket-body">Chat messages not loading after switching models. Getting a blank screen. Happens on Chrome and Safari. Already cleared cache.</div>
+    <div class="ticket-actions"><button class="btn btn-accent">Reply</button><button class="btn btn-secondary">Mark Resolved</button><button class="btn btn-secondary">Assign</button></div>
+  </div>
+  <div class="ticket">
+    <div class="ticket-header">
+      <div class="ticket-avatar">FM</div>
+      <div class="ticket-meta"><strong>Fatima Mohammed</strong><span>5 hours ago · Feature Request</span></div>
+      <span class="badge badge-blue">Feature</span>
+    </div>
+    <div class="ticket-body">Can you add Yoruba language support for the AI responses? Many of my team members prefer communicating in Yoruba.</div>
+    <div class="ticket-actions"><button class="btn btn-accent">Reply</button><button class="btn btn-secondary">Mark Resolved</button></div>
+  </div>
+  <div class="ticket">
+    <div class="ticket-header">
+      <div class="ticket-avatar">CN</div>
+      <div class="ticket-meta"><strong>Chidinma Nwosu</strong><span>8 hours ago · Billing</span></div>
+      <span class="badge badge-yellow">Billing</span>
+    </div>
+    <div class="ticket-body">I was charged twice for my Pro subscription. Transaction ref: PSK-2847362. Please refund the duplicate charge.</div>
+    <div class="ticket-actions"><button class="btn btn-accent">Reply</button><button class="btn btn-secondary">Process Refund</button></div>
+  </div>
+  <div class="ticket">
+    <div class="ticket-header">
+      <div class="ticket-avatar">EK</div>
+      <div class="ticket-meta"><strong>Emeka Kalu</strong><span>Yesterday · Question</span></div>
+      <span class="badge badge-green">Resolved</span>
+    </div>
+    <div class="ticket-body">How do I use the API? I want to integrate Tribal AI into my mobile app. Is there documentation?</div>
+    <div class="ticket-actions"><button class="btn btn-secondary" disabled>Resolved</button></div>
+  </div>
+</div>
+<script>const t=localStorage.getItem('ta_admin_token');if(!t)window.location='admin-login.html';</script>
+</body></html>
