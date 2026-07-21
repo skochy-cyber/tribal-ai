@@ -1441,6 +1441,186 @@ app.put('/api/admin/users/:id/plan', authMw, adminMw, async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: DELETE USER
+// ══════════════════════════════════════════════════════════════════════════════
+app.delete('/api/admin/users/:id', authMw, adminMw, async (req, res) => {
+  try {
+    if (MONGO_URI) await User.findByIdAndDelete(req.params.id);
+    else { const i = memUsers.findIndex(u => u.id == req.params.id); if (i >= 0) memUsers.splice(i, 1); }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: BAN/UNBAN USER
+// ══════════════════════════════════════════════════════════════════════════════
+app.put('/api/admin/users/:id/ban', authMw, adminMw, async (req, res) => {
+  try {
+    const banned = req.body.banned !== false;
+    if (MONGO_URI) await User.findByIdAndUpdate(req.params.id, { banned });
+    else { const u = memUsers.find(u => u.id == req.params.id); if (u) u.banned = banned; }
+    res.json({ ok: true, banned });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: CHAT LISTING
+// ══════════════════════════════════════════════════════════════════════════════
+app.get('/api/admin/chats', authMw, adminMw, async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const chats = await Chat.find().select('title userId model createdAt messages').sort({ createdAt: -1 }).limit(200).lean();
+      return res.json({ chats });
+    }
+    res.json({ chats: memChats.slice(-200).reverse() });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: DELETE CHAT
+// ══════════════════════════════════════════════════════════════════════════════
+app.delete('/api/admin/chats/:id', authMw, adminMw, async (req, res) => {
+  try {
+    if (MONGO_URI) await Chat.findByIdAndDelete(req.params.id);
+    else { const i = memChats.findIndex(c => c.id == req.params.id); if (i >= 0) memChats.splice(i, 1); }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: PAYMENT LISTING
+// ══════════════════════════════════════════════════════════════════════════════
+app.get('/api/admin/payments', authMw, adminMw, async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const payments = await Payment.find().sort({ createdAt: -1 }).limit(200).lean();
+      return res.json({ payments });
+    }
+    res.json({ payments: memPayments.slice(-200).reverse() });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: SYSTEM SETTINGS
+// ══════════════════════════════════════════════════════════════════════════════
+let systemSettings = {
+  maintenanceMode: false,
+  allowSignups: true,
+  allowFreePlan: true,
+  proPriceNaira: 2500,
+  freeMsgLimit: 50,
+  maxFileSizeMB: 10,
+  defaultModel: 'claude-sonnet-4',
+  announcement: ''
+};
+
+app.get('/api/admin/settings', authMw, adminMw, (req, res) => {
+  res.json(systemSettings);
+});
+
+app.put('/api/admin/settings', authMw, adminMw, (req, res) => {
+  Object.assign(systemSettings, req.body);
+  res.json({ ok: true, settings: systemSettings });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: ANALYTICS
+// ══════════════════════════════════════════════════════════════════════════════
+app.get('/api/admin/analytics', authMw, adminMw, async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const [totalUsers, totalChats, totalMessages, totalPayments] = await Promise.all([
+        User.countDocuments(),
+        Chat.countDocuments(),
+        Chat.aggregate([{ $unwind: '$messages' }, { $count: 'total' }]).then(r => (r[0] && r[0].total) || 0),
+        Payment.countDocuments({ status: 'success' })
+      ]);
+      const modelUsage = await Chat.aggregate([{ $group: { _id: '$model', count: { $sum: 1 } } }, { $sort: { count: -1 } }]);
+      const signupsPerDay = await User.aggregate([
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+        { $sort: { _id: -1 } }, { $limit: 30 }
+      ]);
+      return res.json({ totalUsers, totalChats, totalMessages, totalPayments, modelUsage, signupsPerDay });
+    }
+    res.json({ totalUsers: memUsers.length, totalChats: memChats.length, totalMessages: memChats.reduce((a, c) => a + c.messages.length, 0), totalPayments: memPayments.filter(p => p.status === 'success').length, modelUsage: [], signupsPerDay: [] });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: REVENUE
+// ══════════════════════════════════════════════════════════════════════════════
+app.get('/api/admin/revenue', authMw, adminMw, async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const revenue = await Payment.aggregate([
+        { $match: { status: 'success' } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, total: { $sum: '$amount' }, count: { $sum: 1 } } },
+        { $sort: { _id: -1 } }, { $limit: 30 }
+      ]);
+      return res.json({ revenue });
+    }
+    res.json({ revenue: [] });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: MODELS MANAGEMENT
+// ══════════════════════════════════════════════════════════════════════════════
+let aiModels = [
+  { id: 'claude-sonnet-4', name: 'Claude Sonnet 4', provider: 'Anthropic', tier: 'free', enabled: true },
+  { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', tier: 'pro', enabled: true },
+  { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', tier: 'pro', enabled: true },
+  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', provider: 'OpenAI', tier: 'free', enabled: true },
+  { id: 'llama-3.3-70b', name: 'Llama 3.3 70B', provider: 'Groq', tier: 'free', enabled: true },
+  { id: 'llama-3.1-8b', name: 'Llama 3.1 8B', provider: 'Groq', tier: 'free', enabled: true },
+  { id: 'mixtral-8x7b', name: 'Mixtral 8x7B', provider: 'Groq', tier: 'free', enabled: true },
+  { id: 'dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', tier: 'pro', enabled: true }
+];
+
+app.get('/api/admin/models', authMw, adminMw, (req, res) => {
+  res.json({ models: aiModels });
+});
+
+app.put('/api/admin/models/:id', authMw, adminMw, (req, res) => {
+  const m = aiModels.find(m => m.id === req.params.id);
+  if (!m) return res.status(404).json({ error: 'Model not found' });
+  Object.assign(m, req.body);
+  res.json({ ok: true, model: m });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: ANNOUNCEMENTS
+// ══════════════════════════════════════════════════════════════════════════════
+let announcements = [];
+
+app.get('/api/admin/announcements', authMw, adminMw, (req, res) => {
+  res.json({ announcements });
+});
+
+app.post('/api/admin/announcements', authMw, adminMw, (req, res) => {
+  const { title, message, active } = req.body;
+  const ann = { id: Date.now().toString(), title, message, active: active !== false, createdAt: new Date().toISOString() };
+  announcements.unshift(ann);
+  res.json({ ok: true, announcement: ann });
+});
+
+app.delete('/api/admin/announcements/:id', authMw, adminMw, (req, res) => {
+  announcements = announcements.filter(a => a.id !== req.params.id);
+  res.json({ ok: true });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN: BACKUPS
+// ══════════════════════════════════════════════════════════════════════════════
+app.get('/api/admin/backups', authMw, adminMw, (req, res) => {
+  res.json({ backups: [] });
+});
+
+app.post('/api/admin/backups', authMw, adminMw, (req, res) => {
+  res.json({ ok: true, message: 'Backup initiated (simulated)' });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // HEALTH & CATCH-ALL
 // ══════════════════════════════════════════════════════════════════════════════
 
