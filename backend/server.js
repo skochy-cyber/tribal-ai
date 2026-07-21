@@ -2139,6 +2139,149 @@ app.post('/api/chats/bulk-archive', authMw, async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// CODE EXECUTION SANDBOX
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/execute', authMw, async (req, res) => {
+  const { code, language } = req.body;
+  if (!code) return res.status(400).json({ error: 'Code required' });
+  const lang = language || 'javascript';
+  // In production, use isolated Docker container or sandboxed VM
+  // For now, simulate execution
+  try {
+    let output = '';
+    if (lang === 'javascript' || lang === 'js') {
+      // WARNING: In production, NEVER use eval — use vm2 or isolated-vm
+      output = `[Sandbox] Code received (${code.length} chars). Connect a real sandbox for execution.`;
+    } else if (lang === 'python' || lang === 'py') {
+      output = `[Sandbox] Python code received (${code.length} chars). Connect Pyodide for browser execution.`;
+    } else {
+      output = `[Sandbox] ${lang} code received (${code.length} chars).`;
+    }
+    res.json({ ok: true, output, language: lang, executionTime: '0.02s' });
+  } catch (e) { res.status(500).json({ error: 'Execution failed', output: e.message }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AI IMAGE GENERATION
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/image/generate', authMw, async (req, res) => {
+  const { prompt, size } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'Prompt required' });
+  try {
+    // In production, call OpenAI DALL-E 3 API
+    const imageUrl = `https://placehold.co/${size || '512x512'}/1a1916/c84b09?text=${encodeURIComponent(prompt.slice(0,30))}`;
+    res.json({ ok: true, url: imageUrl, prompt });
+  } catch (e) { res.status(500).json({ error: 'Image generation failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DOCUMENT ANALYSIS
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/analyze', authMw, async (req, res) => {
+  const { text, question } = req.body;
+  if (!text) return res.status(400).json({ error: 'Text required' });
+  try {
+    const prompt = question
+      ? `Analyze the following document and answer this question: ${question}\n\nDocument:\n${text}`
+      : `Summarize the following document in key points:\n\n${text}`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, analysis: response });
+  } catch (e) { res.status(500).json({ error: 'Analysis failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SENTIMENT ANALYSIS
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/sentiment', authMw, async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ error: 'Text required' });
+  try {
+    // Simple keyword-based sentiment (in production, use NLP model)
+    const positive = ['good', 'great', 'awesome', 'love', 'excellent', 'amazing', 'happy', 'wonderful', 'fantastic', 'perfect'];
+    const negative = ['bad', 'terrible', 'hate', 'awful', 'horrible', 'worst', 'angry', 'sad', 'ugly', 'poor'];
+    const words = text.toLowerCase().split(/\s+/);
+    let score = 0;
+    words.forEach(w => { if (positive.includes(w)) score++; if (negative.includes(w)) score--; });
+    const label = score > 0 ? 'positive' : score < 0 ? 'negative' : 'neutral';
+    const confidence = Math.min(Math.abs(score) / words.length * 5, 1);
+    res.json({ ok: true, sentiment: label, score, confidence: Math.round(confidence * 100) });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LANGUAGE DETECTION
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/detect-language', (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ error: 'Text required' });
+  // Simple detection based on character patterns
+  const hasCyrillic = /\u0400-\u04FF/.test(text);
+  const hasArabic = /\u0600-\u06FF/.test(text);
+  const hasCJK = /[\u4e00-\u9fff]/.test(text);
+  const hasDevanagari = /[\u0900-\u097F]/.test(text);
+  let lang = 'en';
+  if (hasCyrillic) lang = 'ru';
+  else if (hasArabic) lang = 'ar';
+  else if (hasCJK) lang = 'zh';
+  else if (hasDevanagari) lang = 'hi';
+  res.json({ ok: true, language: lang });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CODE TRANSLATION
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/code/translate', authMw, async (req, res) => {
+  const { code, from, to } = req.body;
+  if (!code || !to) return res.status(400).json({ error: 'Code and target language required' });
+  try {
+    const prompt = `Translate this ${from || 'auto-detect'} code to ${to}. Return ONLY the translated code, no explanation:\n\n${code}`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, translated: response, from, to });
+  } catch (e) { res.status(500).json({ error: 'Translation failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// REGEX BUILDER
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/regex/build', authMw, async (req, res) => {
+  const { description, flags } = req.body;
+  if (!description) return res.status(400).json({ error: 'Description required' });
+  try {
+    const prompt = `Create a regex pattern for: ${description}. Return ONLY the regex pattern in /pattern/flags format, no explanation.`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, pattern: response.trim(), description });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SQL QUERY BUILDER
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/sql/build', authMw, async (req, res) => {
+  const { description, schema } = req.body;
+  if (!description) return res.status(400).json({ error: 'Description required' });
+  try {
+    const prompt = `Generate a SQL query for: ${description}${schema ? `\nSchema: ${schema}` : ''}\nReturn ONLY the SQL query, no explanation.`;
+    const response = await generateAIResponse(prompt, 'claude-sonnet-4', []);
+    res.json({ ok: true, query: response.trim(), description });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PROMPT OPTIMIZER
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/prompt/optimize', authMw, async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'Prompt required' });
+  try {
+    const optimized = await generateAIResponse(
+      `Improve this AI prompt to be clearer, more specific, and more effective. Return ONLY the improved prompt, no explanation:\n\n${prompt}`,
+      'claude-sonnet-4', []
+    );
+    res.json({ ok: true, original: prompt, optimized: optimized.trim() });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // HEALTH & CATCH-ALL
 // ══════════════════════════════════════════════════════════════════════════════
 

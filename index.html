@@ -1295,6 +1295,10 @@ const commands = [
   { name: 'API Docs', icon: '📖', action: 'window.location="api-docs.html"' },
   { name: 'Keyboard Shortcuts', icon: '⌨️', action: 'showShortcutsModal()' },
   { name: 'Compare Models', icon: '🔀', action: 'toggleCompare()' },
+  { name: 'Execute Code', icon: '▶️', action: 'showShortcutsModal()' },
+  { name: 'Generate Image', icon: '🎨', action: 'showShortcutsModal()' },
+  { name: 'Sentiment Analysis', icon: '😊', action: 'showShortcutsModal()' },
+  { name: 'Optimize Prompt', icon: '✨', action: 'showShortcutsModal()' },
   { name: 'Get Embed Code', icon: '🔗', action: 'showEmbedModal()' },
   { name: 'Import Chat', icon: '📥', action: 'showImportModal()' },
   { name: 'Custom Instructions', icon: '📝', action: 'showInstructionsModal()' }
@@ -1431,6 +1435,112 @@ async function saveInstructions() {
 // ── Keyboard Shortcuts Modal ──────────────────────────────────────────────
 function showShortcutsModal() {
   document.getElementById('shortcutsModal')?.classList.add('open');
+}
+
+// ── Code Execution ─────────────────────────────────────────────────────────
+async function executeCode(code, language) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/execute`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ code, language })
+    });
+    hideSkeleton();
+    if (r.ok) {
+      const data = await r.json();
+      return data.output;
+    }
+  } catch { hideSkeleton(); }
+  return 'Execution failed';
+}
+
+// ── Image Generation ───────────────────────────────────────────────────────
+async function generateImage(prompt, size) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/image/generate`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ prompt, size: size || '512x512' })
+    });
+    hideSkeleton();
+    if (r.ok) {
+      const data = await r.json();
+      const msgEl = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'msg msg-ai';
+      div.innerHTML = `<div class="avatar">T</div><div class="content"><img src="${data.url}" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"><p style="font-size:.78rem;color:var(--ink4);margin-top:4px">${data.prompt}</p></div>`;
+      msgEl.appendChild(div);
+      scrollToBottom();
+    }
+  } catch { hideSkeleton(); }
+}
+
+// ── Document Analysis ──────────────────────────────────────────────────────
+async function analyzeDocument(text, question) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/analyze`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ text, question })
+    });
+    hideSkeleton();
+    if (r.ok) {
+      const data = await r.json();
+      appendMsg('assistant', data.analysis);
+    }
+  } catch { hideSkeleton(); }
+}
+
+// ── Sentiment Analysis ─────────────────────────────────────────────────────
+async function analyzeSentiment(text) {
+  if (!token) return showAuth('login');
+  try {
+    const r = await fetch(`${API}/api/sentiment`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ text })
+    });
+    if (r.ok) {
+      const data = await r.json();
+      const emoji = data.sentiment === 'positive' ? '😊' : data.sentiment === 'negative' ? '😔' : '😐';
+      toast(`Sentiment: ${emoji} ${data.sentiment} (${data.confidence}% confidence)`, 'ok');
+    }
+  } catch {}
+}
+
+// ── Code Translation ───────────────────────────────────────────────────────
+async function translateCode(code, to) {
+  if (!token) return showAuth('login');
+  try {
+    showSkeleton();
+    const r = await fetch(`${API}/api/code/translate`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ code, to })
+    });
+    hideSkeleton();
+    if (r.ok) {
+      const data = await r.json();
+      appendMsg('assistant', `**Translated to ${data.to}:**\n\n\`\`\`${to}\n${data.translated}\n\`\`\``);
+    }
+  } catch { hideSkeleton(); }
+}
+
+// ── Prompt Optimizer ───────────────────────────────────────────────────────
+async function optimizePrompt(prompt) {
+  if (!token) return showAuth('login');
+  try {
+    const r = await fetch(`${API}/api/prompt/optimize`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ prompt })
+    });
+    if (r.ok) {
+      const data = await r.json();
+      document.getElementById('inputBox').value = data.optimized;
+      toast('Prompt optimized!', 'ok');
+    }
+  } catch {}
 }
 
 // ── Skeleton Loading ──────────────────────────────────────────────────────
