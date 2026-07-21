@@ -3187,3 +3187,32 @@ app.put('/api/admin/feedback/:id', requireAdmin, (req, res) => {
 });
 
 console.log('[v19.1] Added admin routes: revenue, api-usage, health, feedback');
+
+// Admin settings persistence (payment gateways)
+const adminSettings = new Map();
+app.get('/api/admin/settings', requireAdmin, (req, res) => {
+  const settings = adminSettings.get('main') || {};
+  // Mask sensitive keys for display
+  const safe = {...settings};
+  if (safe.paystackSecret) safe.paystackSecret = safe.paystackSecret.slice(0,8)+'...';
+  if (safe.flutterwaveSecret) safe.flutterwaveSecret = safe.flutterwaveSecret.slice(0,10)+'...';
+  if (safe.stripeSecret) safe.stripeSecret = safe.stripeSecret.slice(0,8)+'...';
+  if (safe.anthropicKey) safe.anthropicKey = safe.anthropicKey.slice(0,8)+'...';
+  if (safe.openaiKey) safe.openaiKey = safe.openaiKey.slice(0,8)+'...';
+  if (safe.groqKey) safe.groqKey = safe.groqKey.slice(0,8)+'...';
+  res.json(safe);
+});
+app.put('/api/admin/settings', requireAdmin, (req, res) => {
+  const current = adminSettings.get('main') || {};
+  // Only overwrite keys if new values are provided (not masked)
+  const data = {...req.body};
+  if (data.paystackSecret && data.paystackSecret.includes('...')) delete data.paystackSecret;
+  if (data.flutterwaveSecret && data.flutterwaveSecret.includes('...')) delete data.flutterwaveSecret;
+  if (data.stripeSecret && data.stripeSecret.includes('...')) delete data.stripeSecret;
+  if (data.anthropicKey && data.anthropicKey.includes('...')) delete data.anthropicKey;
+  if (data.openaiKey && data.openaiKey.includes('...')) delete data.openaiKey;
+  if (data.groqKey && data.groqKey.includes('...')) delete data.groqKey;
+  adminSettings.set('main', {...current, ...data, updatedAt: new Date().toISOString()});
+  res.json({ok:true, message:'Settings saved'});
+});
+console.log('[v19.2] Added admin settings persistence route');
