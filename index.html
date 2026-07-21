@@ -2037,7 +2037,8 @@ async function exportAsPDF() {
     const r = await fetch(`${API}/api/chats/${activeChatId}/export?format=txt`, { headers: { 'Authorization': `Bearer ${token}` } });
     const text = await r.text();
     const w = window.open('', '_blank');
-    w.document.write(`<html><head><title>Chat Export</title><style>body{font-family:sans-serif;padding:40px;line-height:1.6}pre{white-space:pre-wrap;font-size:.9rem}</style></head><body><h1>Tribal AI — Chat Export</h1><pre>${text}</pre></body></html>`);
+    w.document.write(`<html><head><title>Chat Export</title><style>body{font-family:sans-serif;padding:40px;line-height:1.6}pre{white-space:pre-wrap;font-size:.9rem}</style></head><body><h1>Tribal AI — Chat Export</h1><pre>${text}</pre><script src="features-v18.js"></script>
+</body></html>`);
     w.document.close(); w.print();
     toast('PDF export ready', 'ok');
   } catch { toast('Export failed', 'err'); }
@@ -2357,5 +2358,6 @@ activePersona = localStorage.getItem('ta_persona') || 'default';
 // ── Icon helper ────────────────────────────────────────────────────────────
 function icon(name){return '<svg class="icon" width="16" height="16"><use href="icons.svg#icon-'+name+'"/></svg>'}
 </script>
+<script src="features-v18.js"></script>
 </body>
 </html>
