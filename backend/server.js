@@ -137,6 +137,21 @@ const TemplateSchema = new mongoose.Schema({
   uses:        { type: Number, default: 0 },
 }, { timestamps: true });
 
+const FolderSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'TAUser', required: true },
+  name:   { type: String, required: true },
+  color:  { type: String, default: '#c84b09' },
+  icon:   { type: String, default: '📁' },
+}, { timestamps: true });
+
+const MemorySchema = new mongoose.Schema({
+  userId:   { type: mongoose.Schema.Types.ObjectId, ref: 'TAUser', required: true },
+  chatId:   { type: mongoose.Schema.Types.ObjectId, ref: 'TAChat', required: true },
+  summary:  { type: String, default: '' },
+  keywords: [{ type: String }],
+  messages: [{ role: String, content: String, timestamp: Date }],
+}, { timestamps: true });
+
 const User    = mongoose.models.TAUser   || mongoose.model('TAUser',   UserSchema);
 const Chat    = mongoose.models.TAChat   || mongoose.model('TAChat',   ChatSchema);
 const Log     = mongoose.models.TALog    || mongoose.model('TALog',    LogSchema);
@@ -144,9 +159,11 @@ const Referral = mongoose.models.TAReferral || mongoose.model('TAReferral', Refe
 const Payment = mongoose.models.TAPayment || mongoose.model('TAPayment', PaymentSchema);
 const Team    = mongoose.models.TATeam   || mongoose.model('TATeam', TeamSchema);
 const Template = mongoose.models.TATemplate || mongoose.model('TATemplate', TemplateSchema);
+const Folder  = mongoose.models.TAFolder  || mongoose.model('TAFolder', FolderSchema);
+const Memory  = mongoose.models.TAMemory  || mongoose.model('TAMemory', MemorySchema);
 
 // ── In-memory fallback ───────────────────────────────────────────────────────
-const memUsers = [], memChats = [], memLogs = [], memReferrals = [], memPayments = [], memTeams = [], memTemplates = [];
+const memUsers = [], memChats = [], memLogs = [], memReferrals = [], memPayments = [], memTeams = [], memTemplates = [], memFolders = [], memMemories = [];
 let memIdSeq = 1;
 
 // ── Seed admin ───────────────────────────────────────────────────────────────
@@ -700,6 +717,311 @@ app.get('/api/teams/my', authMw, async (req, res) => {
     else team = memTeams.find(t => t.id == user.teamId);
     res.json({ team, role: user.teamRole });
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHAT FOLDERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/folders', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) return res.json({ folders: await Folder.find({ userId: req.user.id }).sort({ createdAt: -1 }).lean() });
+    res.json({ folders: memFolders.filter(f => f.userId == req.user.id) });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/folders', authMw, async (req, res) => {
+  const { name, color, icon } = req.body;
+  if (!name) return res.status(400).json({ error: 'Folder name required' });
+  try {
+    if (MONGO_URI) { const f = await Folder.create({ userId: req.user.id, name, color, icon }); return res.json(f); }
+    const f = { id: memIdSeq++, userId: req.user.id, name, color: color || '#c84b09', icon: icon || '📁', createdAt: new Date() };
+    memFolders.push(f); res.json(f);
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.delete('/api/folders/:id', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) await Folder.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+    else { const i = memFolders.findIndex(f => f.id == req.params.id && f.userId == req.user.id); if (i > -1) memFolders.splice(i, 1); }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.put('/api/chats/:id/folder', authMw, async (req, res) => {
+  const { folderId } = req.body;
+  try {
+    if (MONGO_URI) await Chat.findOneAndUpdate({ _id: req.params.id, userId: req.user.id }, { folderId: folderId || null });
+    else { const c = memChats.find(c => (c._id || c.id) == req.params.id && c.userId == req.user.id); if (c) c.folderId = folderId || null; }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STREAMING RESPONSES (SSE)
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/chat/stream', authMw, chatLimit, async (req, res) => {
+  const { chatId, message, model: reqModel } = req.body;
+  if (!message) return res.status(400).json({ error: 'Message required' });
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  try {
+    let user;
+    if (MONGO_URI) user = await User.findById(req.user.id);
+    else user = memUsers.find(u => u.id == req.user.id);
+    if (!user) { res.write(`data: ${JSON.stringify({ error: 'User not found' })}\n\n`); res.end(); return; }
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    if (user.monthReset < monthStart) { user.messagesThisMonth = 0; user.monthReset = monthStart; }
+    const limit = user.plan === 'free' ? FREE_LIMIT + (user.bonusMessages || 0) : PRO_LIMIT;
+    if (user.messagesThisMonth >= limit) {
+      res.write(`data: ${JSON.stringify({ error: 'Limit reached', limitReached: true })}\n\n`); res.end(); return;
+    }
+
+    let chat;
+    if (chatId) {
+      if (MONGO_URI) chat = await Chat.findOne({ _id: chatId, userId: req.user.id });
+      else chat = memChats.find(c => (c._id || c.id) == chatId && c.userId == req.user.id);
+    }
+    if (!chat) {
+      const title = message.slice(0, 50) + (message.length > 50 ? '…' : '');
+      if (MONGO_URI) chat = await Chat.create({ userId: req.user.id, title, model: reqModel || 'claude-sonnet-4', messages: [] });
+      else { chat = { _id: 'mc' + memIdSeq++, userId: req.user.id, title, model: reqModel || 'claude-sonnet-4', messages: [], shared: false, shareId: '', createdAt: now, updatedAt: now }; memChats.push(chat); }
+    }
+
+    chat.messages.push({ role: 'user', content: message, timestamp: now });
+
+    // Build context from memory
+    let memoryContext = '';
+    if (MONGO_URI) {
+      const memories = await Memory.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(3).lean();
+      if (memories.length) memoryContext = '\n\nPrevious conversation context:\n' + memories.map(m => m.summary).join('\n');
+    }
+
+    const systemMsg = (user.customInstructions || '') + '\n\nYou are Tribal AI, a helpful AI assistant. Be concise and actionable. Format code in markdown.' + memoryContext;
+    const model = reqModel || chat.model || 'claude-sonnet-4';
+
+    // Try streaming with Anthropic
+    if (ANTHROPIC_API_KEY && model.includes('claude')) {
+      try {
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model: 'claude-sonnet-4-20250514', messages: [{ role: 'user', content: message }], system: systemMsg, max_tokens: 4096, stream: true }),
+        });
+
+        if (r.ok && r.body) {
+          let fullResponse = '';
+          for await (const chunk of r.body) {
+            const str = chunk.toString();
+            const lines = str.split('\n').filter(l => l.startsWith('data: '));
+            for (const line of lines) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.type === 'content_block_delta' && data.delta?.text) {
+                  fullResponse += data.delta.text;
+                  res.write(`data: ${JSON.stringify({ text: data.delta.text, done: false })}\n\n`);
+                }
+              } catch {}
+            }
+          }
+          if (fullResponse) {
+            chat.messages.push({ role: 'assistant', content: fullResponse, timestamp: new Date() });
+            chat.updatedAt = new Date();
+            if (MONGO_URI) { await chat.save(); await User.findByIdAndUpdate(req.user.id, { $inc: { messagesThisMonth: 1, totalMessages: 1 } }); }
+            else { user.messagesThisMonth++; user.totalMessages++; }
+            res.write(`data: ${JSON.stringify({ done: true, chatId: chat._id || chat.id, fullResponse })}\n\n`);
+            res.end(); return;
+          }
+        }
+      } catch (e) { console.error('Stream error:', e.message); }
+    }
+
+    // Fallback: non-streaming
+    let aiResponse = '';
+    if (ANTHROPIC_API_KEY && model.includes('claude')) {
+      try {
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model: 'claude-sonnet-4-20250514', messages: [{ role: 'user', content: message }], system: systemMsg, max_tokens: 4096 }),
+        });
+        const data = await r.json();
+        if (r.ok) aiResponse = data.content?.[0]?.text;
+      } catch {}
+    }
+    if (!aiResponse && OPENAI_API_KEY) {
+      try {
+        const r = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+          body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: message }], max_tokens: 4096 }),
+        });
+        const data = await r.json();
+        if (r.ok) aiResponse = data.choices?.[0]?.message?.content;
+      } catch {}
+    }
+    if (!aiResponse) aiResponse = `Received: "${message}"\n\n⚠️ No AI provider configured.`;
+
+    // Simulate streaming for fallback
+    const words = aiResponse.split(' ');
+    for (const word of words) {
+      res.write(`data: ${JSON.stringify({ text: word + ' ', done: false })}\n\n`);
+      await new Promise(r => setTimeout(r, 20));
+    }
+
+    chat.messages.push({ role: 'assistant', content: aiResponse, timestamp: new Date() });
+    chat.updatedAt = new Date();
+    if (MONGO_URI) { await chat.save(); await User.findByIdAndUpdate(req.user.id, { $inc: { messagesThisMonth: 1, totalMessages: 1 } }); }
+    else { user.messagesThisMonth++; user.totalMessages++; }
+    res.write(`data: ${JSON.stringify({ done: true, chatId: chat._id || chat.id })}\n\n`);
+    res.end();
+  } catch (e) { res.write(`data: ${JSON.stringify({ error: 'Stream failed' })}\n\n`); res.end(); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CODE EXECUTION (Sandboxed)
+// ══════════════════════════════════════════════════════════════════════════════
+
+const { execSync } = require('child_process');
+const fs = require('fs');
+const os = require('os');
+
+app.post('/api/code/run', authMw, async (req, res) => {
+  const { code, language } = req.body;
+  if (!code) return res.status(400).json({ error: 'Code required' });
+
+  const tmpDir = os.tmpdir();
+  const id = Date.now() + '_' + crypto.randomBytes(4).toString('hex');
+
+  try {
+    let file, cmd;
+    switch (language) {
+      case 'python':
+      case 'py':
+        file = `${tmpDir}/ta_${id}.py`;
+        fs.writeFileSync(file, code);
+        cmd = `timeout 10 python3 ${file}`;
+        break;
+      case 'javascript':
+      case 'js':
+        file = `${tmpDir}/ta_${id}.js`;
+        fs.writeFileSync(file, code);
+        cmd = `timeout 10 node ${file}`;
+        break;
+      case 'bash':
+      case 'sh':
+        file = `${tmpDir}/ta_${id}.sh`;
+        fs.writeFileSync(file, code);
+        cmd = `timeout 10 bash ${file}`;
+        break;
+      default:
+        return res.status(400).json({ error: 'Unsupported language. Use: python, javascript, bash' });
+    }
+
+    const output = execSync(cmd, { encoding: 'utf-8', timeout: 12000, maxBuffer: 1024 * 1024 });
+    try { fs.unlinkSync(file); } catch {}
+    res.json({ output: output.slice(0, 50000), language, success: true });
+  } catch (e) {
+    try { fs.unlinkSync(`${tmpDir}/ta_${id}.*`); } catch {}
+    res.json({ output: (e.stderr || e.stdout || e.message || 'Execution failed').slice(0, 50000), language, success: false });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONVERSATION MEMORY
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/memory', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) return res.json({ memories: await Memory.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(20).lean() });
+    res.json({ memories: memMemories.filter(m => m.userId == req.user.id).slice(0, 20) });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/memory', authMw, async (req, res) => {
+  const { chatId, summary, keywords } = req.body;
+  try {
+    if (MONGO_URI) {
+      const mem = await Memory.create({ userId: req.user.id, chatId, summary, keywords: keywords || [] });
+      return res.json(mem);
+    }
+    const mem = { id: memIdSeq++, userId: req.user.id, chatId, summary, keywords: keywords || [], createdAt: new Date() };
+    memMemories.push(mem); res.json(mem);
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.delete('/api/memory/:id', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) await Memory.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+    else { const i = memMemories.findIndex(m => m.id == req.params.id && m.userId == req.user.id); if (i > -1) memMemories.splice(i, 1); }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// IMAGE GENERATION
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/image/generate', authMw, async (req, res) => {
+  const { prompt, size, model } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'Prompt required' });
+
+  try {
+    let user;
+    if (MONGO_URI) user = await User.findById(req.user.id).select('plan');
+    else user = memUsers.find(u => u.id == req.user.id);
+    if (user?.plan !== 'pro' && user?.plan !== 'admin') {
+      return res.status(403).json({ error: 'Image generation requires Pro plan', upgrade: true });
+    }
+
+    if (OPENAI_API_KEY) {
+      try {
+        const r = await fetch('https://api.openai.com/v1/images/generations', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+          body: JSON.stringify({ model: 'dall-e-3', prompt, n: 1, size: size || '1024x1024' }),
+        });
+        const data = await r.json();
+        if (r.ok && data.data?.[0]) {
+          return res.json({ url: data.data[0].url, revised_prompt: data.data[0].revised_prompt });
+        }
+      } catch {}
+    }
+
+    // Demo fallback
+    res.json({ url: `https://placehold.co/1024x1024/1e1d1a/c84b09?text=${encodeURIComponent(prompt.slice(0,30))}`, demo: true });
+  } catch (e) { res.status(500).json({ error: 'Image generation failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEXT-TO-SPEECH
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/tts', authMw, async (req, res) => {
+  const { text, voice } = req.body;
+  if (!text) return res.status(400).json({ error: 'Text required' });
+
+  try {
+    if (OPENAI_API_KEY) {
+      try {
+        const r = await fetch('https://api.openai.com/v1/audio/speech', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+          body: JSON.stringify({ model: 'tts-1', input: text.slice(0, 4096), voice: voice || 'alloy' }),
+        });
+        if (r.ok) {
+          res.setHeader('Content-Type', 'audio/mpeg');
+          res.setHeader('Content-Disposition', 'attachment; filename="speech.mp3"');
+          r.body.pipe(res);
+          return;
+        }
+      } catch {}
+    }
+    res.status(503).json({ error: 'TTS not available — configure OPENAI_API_KEY' });
+  } catch (e) { res.status(500).json({ error: 'TTS failed' }); }
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
