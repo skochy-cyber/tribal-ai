@@ -211,6 +211,9 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
       <button class="topbar-btn" onclick="shareChat()" title="Share chat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
       </button>
+      <button class="topbar-btn" onclick="startVoiceInput()" title="Voice input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
       <button class="topbar-btn" onclick="openCodeModal()" title="Run code">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
       </button>
@@ -560,6 +563,71 @@ body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#
     <button class="btn btn-ghost" onclick="document.getElementById('achievementsModal').classList.remove('open')" style="margin-top:12px">Close</button>
   </div>
 </div>
+
+<!-- COMMAND PALETTE -->
+<div class="modal-bg" id="commandPalette">
+  <div class="modal" style="max-width:480px;padding:0">
+    <input type="text" id="cmdInput" placeholder="Type a command..." oninput="filterCommands(this.value)" style="width:100%;padding:16px;border:none;border-bottom:1px solid var(--border);background:var(--surface);color:var(--ink);font:inherit;font-size:.95rem;outline:none;border-radius:var(--r) var(--r) 0 0">
+    <div id="cmdList" style="max-height:300px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-bg" id="importModal">
+  <div class="modal" style="max-width:420px">
+    <h2 style="margin-bottom:12px">📥 Import Chat</h2>
+    <p style="font-size:.84rem;color:var(--ink3);margin-bottom:16px">Import from ChatGPT, Claude, or plain text.</p>
+    <div class="fg"><label>Chat File (.json or .txt)</label><input type="file" id="importFile" accept=".json,.txt,.csv" class="fi"></div>
+    <p style="font-size:.78rem;color:var(--ink4);margin-bottom:12px">Supports ChatGPT export format, Claude format, or plain text (alternating lines).</p>
+    <div style="display:flex;gap:8px"><button class="btn btn-accent" onclick="importChat()">Import</button><button class="btn btn-ghost" onclick="closeAllModals()">Cancel</button></div>
+  </div>
+</div>
+
+<!-- CUSTOM INSTRUCTIONS MODAL -->
+<div class="modal-bg" id="instructionsModal">
+  <div class="modal" style="max-width:500px">
+    <h2 style="margin-bottom:8px">📝 Custom Instructions</h2>
+    <p style="font-size:.84rem;color:var(--ink3);margin-bottom:16px">Tell AI how to behave. These apply to all your conversations.</p>
+    <textarea id="instructionsText" class="fi" rows="6" placeholder="Example: I'm a software engineer. Always respond with code examples. Use Python. Be concise." style="min-height:120px;resize:vertical"></textarea>
+    <p style="font-size:.78rem;color:var(--ink4);margin:8px 0 12px">Saved automatically. Max 500 characters.</p>
+    <div style="display:flex;gap:8px"><button class="btn btn-accent" onclick="saveInstructions()">Save</button><button class="btn btn-ghost" onclick="closeAllModals()">Cancel</button></div>
+  </div>
+</div>
+
+<!-- SHORTCUTS MODAL -->
+<div class="modal-bg" id="shortcutsModal">
+  <div class="modal" style="max-width:480px">
+    <h2 style="margin-bottom:16px">⌨️ Keyboard Shortcuts</h2>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:.88rem">New Chat</span><kbd style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem">Ctrl+N</kbd></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:.88rem">Search</span><kbd style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem">Ctrl+K</kbd></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:.88rem">Toggle Sidebar</span><kbd style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem">Ctrl+B</kbd></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:.88rem">Export Chat</span><kbd style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem">Ctrl+E</kbd></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:.88rem">Fullscreen</span><kbd style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem">Ctrl+J</kbd></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:.88rem">Settings</span><kbd style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem">Ctrl+,</kbd></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:.88rem">Toggle Theme</span><kbd style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem">Ctrl+Shift+L</kbd></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="font-size:.88rem">Close Modal</span><kbd style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:.78rem">Esc</kbd></div>
+    </div>
+    <button class="btn btn-ghost" onclick="closeAllModals()" style="margin-top:16px">Close</button>
+  </div>
+</div>
+
+<!-- SKELETON CSS -->
+<style>
+.skeleton-msg{display:flex;gap:10px;padding:8px 0}
+.skeleton-avatar{width:28px;height:28px;border-radius:6px;background:var(--bg3);animation:pulse 1.5s infinite}
+.skeleton-content{flex:1;display:flex;flex-direction:column;gap:8px}
+.skeleton-line{height:14px;border-radius:4px;background:var(--bg3);animation:pulse 1.5s infinite}
+.skeleton-line.short{width:60%}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.7}}
+.cmd-item{padding:10px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:.88rem;transition:.1s}
+.cmd-item:hover{background:var(--bg3);color:var(--ink)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:200}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;max-width:480px;width:90%;max-height:90vh;overflow-y:auto}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--ink3);padding:8px 16px;border-radius:var(--r);cursor:pointer;font:inherit;font-size:.84rem}
+.btn-ghost:hover{background:var(--bg3);color:var(--ink)}
+</style>
 
 <input type="file" id="fileInputCamera" style="display:none" accept="image/*" capture="environment" onchange="handleFiles(this.files)">
 <input type="file" id="fileInputPhotos" style="display:none" accept="image/*" multiple onchange="handleFiles(this.files)">
@@ -1124,18 +1192,159 @@ function toggleFullscreen() {
 
 // ── Update keyboard shortcuts ──────────────────────────────────────────────
 function handleKey(e) {
+  // Command palette
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); toggleCommandPalette(); return; }
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('inputBox').focus(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); newChat(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); toggleSidebar(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'e') { e.preventDefault(); exportChat(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); toggleSearch(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'j') { e.preventDefault(); toggleFullscreen(); }
-  if (e.key === 'Escape') { closeAllModals(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === ',') { e.preventDefault(); showSettings(); }
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'L') { e.preventDefault(); toggleTheme(); }
+  if (e.key === 'Escape') { closeAllModals(); closeCommandPalette(); }
+}
+
+// ── Command Palette ───────────────────────────────────────────────────────
+const commands = [
+  { name: 'New Chat', icon: '💬', action: 'newChat()' },
+  { name: 'Toggle Sidebar', icon: '📋', action: 'toggleSidebar()' },
+  { name: 'Search Chats', icon: '🔍', action: 'toggleSearch()' },
+  { name: 'Toggle Theme', icon: '🌙', action: 'toggleTheme()' },
+  { name: 'Export Chat', icon: '📤', action: 'exportChat()' },
+  { name: 'Settings', icon: '⚙️', action: 'showSettings()' },
+  { name: 'Personas', icon: '🎭', action: 'showPersonaModal()' },
+  { name: 'Prompt Library', icon: '📚', action: 'showPromptModal()' },
+  { name: 'Achievements', icon: '🏆', action: 'showAchievementsModal()' },
+  { name: 'Memory', icon: '🧠', action: 'showMemory()' },
+  { name: 'Referrals', icon: '👥', action: 'showReferralModal()' },
+  { name: 'Upgrade to Pro', icon: '⭐', action: 'showPayment()' },
+  { name: 'Voice Input', icon: '🎤', action: 'startVoiceInput()' },
+  { name: 'Import Chat', icon: '📥', action: 'showImportModal()' },
+  { name: 'Custom Instructions', icon: '📝', action: 'showInstructionsModal()' },
+  { name: 'Dashboard', icon: '📊', action: 'window.location="dashboard.html"' },
+  { name: 'API Docs', icon: '📖', action: 'window.location="api-docs.html"' },
+  { name: 'Keyboard Shortcuts', icon: '⌨️', action: 'showShortcutsModal()' }
+];
+
+function toggleCommandPalette() {
+  const el = document.getElementById('commandPalette');
+  if (el.classList.contains('open')) { closeCommandPalette(); return; }
+  el.classList.add('open');
+  document.getElementById('cmdInput').value = '';
+  document.getElementById('cmdInput').focus();
+  filterCommands('');
+}
+function closeCommandPalette() { document.getElementById('commandPalette')?.classList.remove('open'); }
+function filterCommands(q) {
+  const filtered = commands.filter(c => c.name.toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('cmdList').innerHTML = filtered.map(c => 
+    `<div class="cmd-item" onclick="runCmd('${c.action}')">${c.icon} ${c.name}</div>`
+  ).join('') || '<div style="padding:12px;color:var(--ink4);text-align:center">No commands found</div>';
+}
+function runCmd(action) { closeCommandPalette(); eval(action); }
+
+// ── Voice Input ───────────────────────────────────────────────────────────
+let mediaRecorder = null;
+function startVoiceInput() {
+  if (!navigator.mediaDevices) { toast('Voice not supported in this browser', 'err'); return; }
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    mediaRecorder = new MediaRecorder(stream);
+    const chunks = [];
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    mediaRecorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      toast('Processing voice...', 'ok');
+      // In production, send audio to Whisper API
+      toast('Voice input: connect OpenAI Whisper for full support', 'ok');
+    };
+    mediaRecorder.start();
+    toast('🎙️ Recording... Click mic again to stop', 'ok');
+    // Auto-stop after 30 seconds
+    setTimeout(() => { if (mediaRecorder?.state === 'recording') mediaRecorder.stop(); }, 30000);
+  }).catch(() => toast('Microphone access denied', 'err'));
+}
+
+// ── Chat Import ───────────────────────────────────────────────────────────
+function showImportModal() {
+  document.getElementById('importModal')?.classList.add('open');
+}
+async function importChat() {
+  const file = document.getElementById('importFile')?.files[0];
+  if (!file) return;
+  const text = await file.text();
+  try {
+    let messages = [];
+    if (file.name.endsWith('.json')) {
+      const data = JSON.parse(text);
+      messages = (data.messages || data).map(m => ({ role: m.role || 'user', content: m.content || m.text || '' }));
+    } else {
+      // Treat as plain text - alternate user/assistant
+      const lines = text.split('\n').filter(l => l.trim());
+      messages = lines.map((l, i) => ({ role: i % 2 === 0 ? 'user' : 'assistant', content: l }));
+    }
+    const r = await fetch(`${API}/api/import`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ messages, title: file.name.replace(/\.[^.]+$/, ''), source: 'file-upload' })
+    });
+    if (r.ok) {
+      const d = await r.json();
+      toast(`Imported ${d.messages} messages`, 'ok');
+      document.getElementById('importModal')?.classList.remove('open');
+      loadChats();
+      openChat(d.chatId);
+    }
+  } catch { toast('Import failed — check file format', 'err'); }
+}
+
+// ── Custom Instructions ───────────────────────────────────────────────────
+function showInstructionsModal() {
+  document.getElementById('instructionsModal')?.classList.add('open');
+  fetch(`${API}/api/instructions`, { headers: { 'Authorization': `Bearer ${token}` } })
+    .then(r => r.json())
+    .then(d => { document.getElementById('instructionsText').value = d.instructions || ''; })
+    .catch(() => {});
+}
+async function saveInstructions() {
+  const instructions = document.getElementById('instructionsText').value;
+  await fetch(`${API}/api/instructions`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ instructions })
+  });
+  toast('Instructions saved', 'ok');
+  document.getElementById('instructionsModal')?.classList.remove('open');
+}
+
+// ── Keyboard Shortcuts Modal ──────────────────────────────────────────────
+function showShortcutsModal() {
+  document.getElementById('shortcutsModal')?.classList.add('open');
+}
+
+// ── Skeleton Loading ──────────────────────────────────────────────────────
+function showSkeleton() {
+  const el = document.getElementById('messages');
+  const skel = document.createElement('div');
+  skel.className = 'skeleton-msg';
+  skel.innerHTML = '<div class="skeleton-avatar"></div><div class="skeleton-content"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div></div>';
+  skel.id = 'skeleton';
+  el.appendChild(skel);
+  el.scrollTop = el.scrollHeight;
+}
+function hideSkeleton() { document.getElementById('skeleton')?.remove(); }
+
+// ── Usage Stats ───────────────────────────────────────────────────────────
+async function loadUsageStats() {
+  if (!token) return;
+  try {
+    const r = await fetch(`${API}/api/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) {
+      const d = await r.json();
+      document.getElementById('usageBadge').textContent = d.messages || 0;
+    }
+  } catch {}
 }
 function closeAllModals() {
-  ['authModal','settingsModal','referralModal','paymentModal','codeModal','imageModal','memoryModal','folderModal','analyticsModal','branchModal','sessionsModal','translateModal','personaModal','promptModal','achievementsModal'].forEach(id => {
+  ['authModal','settingsModal','referralModal','paymentModal','codeModal','imageModal','memoryModal','folderModal','analyticsModal','branchModal','sessionsModal','translateModal','personaModal','promptModal','achievementsModal','importModal','instructionsModal','shortcutsModal'].forEach(id => {
     document.getElementById(id)?.classList.remove('open');
   });
 }

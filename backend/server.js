@@ -1828,6 +1828,125 @@ app.get('/api/shared/:shareId', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// FORGOT PASSWORD / RESET
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  try {
+    if (MONGO_URI) {
+      const user = await User.findOne({ email });
+      if (user) {
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetToken = resetToken;
+        user.resetExpires = Date.now() + 3600000; // 1 hour
+        await user.save();
+        // In production, send email here
+        console.log(`Reset link for ${email}: /forgot-password?token=${resetToken}`);
+      }
+    }
+    res.json({ ok: true, message: 'If that email exists, a reset link has been sent.' });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) return res.status(400).json({ error: 'Token and password required' });
+  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  try {
+    if (MONGO_URI) {
+      const user = await User.findOne({ resetToken: token, resetExpires: { $gt: Date.now() } });
+      if (!user) return res.status(400).json({ error: 'Invalid or expired token' });
+      user.password = await bcrypt.hash(password, 12);
+      user.resetToken = undefined;
+      user.resetExpires = undefined;
+      await user.save();
+      return res.json({ ok: true });
+    }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VOICE INPUT (Whisper transcription)
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/voice', authMw, async (req, res) => {
+  // In production, this would use OpenAI Whisper API
+  // For now, return a placeholder
+  res.json({ text: '[Voice input — connect OpenAI Whisper API for real transcription]' });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHAT IMPORT
+// ══════════════════════════════════════════════════════════════════════════════
+app.post('/api/import', authMw, async (req, res) => {
+  const { messages, title, source } = req.body;
+  if (!messages || !Array.isArray(messages)) return res.status(400).json({ error: 'Messages array required' });
+  try {
+    const chatData = {
+      userId: req.user.id,
+      title: title || `Imported from ${source || 'external'}`,
+      model: 'imported',
+      messages: messages.map(m => ({ role: m.role || 'user', content: m.content || m.text || '', createdAt: new Date() })),
+      importedFrom: source || 'unknown'
+    };
+    if (MONGO_URI) {
+      const chat = await Chat.create(chatData);
+      return res.json({ ok: true, chatId: chat._id, messages: chat.messages.length });
+    }
+    const chat = { id: Date.now().toString(), ...chatData, createdAt: new Date().toISOString() };
+    memChats.push(chat);
+    res.json({ ok: true, chatId: chat.id, messages: chat.messages.length });
+  } catch (e) { res.status(500).json({ error: 'Import failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CUSTOM INSTRUCTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+let customInstructions = {};
+
+app.get('/api/instructions', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const user = await User.findById(req.user.id).select('customInstructions').lean();
+      return res.json({ instructions: user?.customInstructions || '' });
+    }
+    res.json({ instructions: customInstructions[req.user.id] || '' });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.put('/api/instructions', authMw, async (req, res) => {
+  const { instructions } = req.body;
+  try {
+    if (MONGO_URI) {
+      await User.findByIdAndUpdate(req.user.id, { customInstructions: instructions || '' });
+      return res.json({ ok: true });
+    }
+    customInstructions[req.user.id] = instructions || '';
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// USER STATISTICS
+// ══════════════════════════════════════════════════════════════════════════════
+app.get('/api/stats', authMw, async (req, res) => {
+  try {
+    if (MONGO_URI) {
+      const [chatCount, messageCount] = await Promise.all([
+        Chat.countDocuments({ userId: req.user.id }),
+        Chat.aggregate([{ $match: { userId: new (mongoose.Types.ObjectId)(req.user.id) } }, { $unwind: '$messages' }, { $count: 'total' }]).then(r => (r[0] && r[0].total) || 0)
+      ]);
+      const models = await Chat.distinct('model', { userId: req.user.id });
+      return res.json({ chats: chatCount, messages: messageCount, modelsUsed: models.length, models });
+    }
+    const userChats = memChats.filter(c => c.userId == req.user.id);
+    const totalMsgs = userChats.reduce((a, c) => a + c.messages.length, 0);
+    res.json({ chats: userChats.length, messages: totalMsgs, modelsUsed: 1, models: ['default'] });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // HEALTH & CATCH-ALL
 // ══════════════════════════════════════════════════════════════════════════════
 
