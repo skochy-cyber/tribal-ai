@@ -1,0 +1,13 @@
+{
+  "name": "Tribal AI",
+  "short_name": "Tribal AI",
+  "description": "Chat, Code, Create — AI-powered assistant by Tribal Tech",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0e0b",
+  "theme_color": "#0f0e0b",
+  "icons": [
+    { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

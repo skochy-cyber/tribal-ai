@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#0f0e0b">
+<link rel="manifest" href="/manifest.json">
 <title>Tribal AI — Chat, Code, Create</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
@@ -13,8 +14,8 @@
 :root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--border2:#3d3c37;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.1);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--r:12px;--shadow:0 4px 20px rgba(0,0,0,.3)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height:100vh;overflow:hidden;display:flex;-webkit-font-smoothing:antialiased}
+body.light{--bg:#f9f8f6;--bg2:#ffffff;--bg3:#f3f1ec;--surface:#ffffff;--border:#e6e2da;--border2:#d6d1c8;--ink:#0f0e0b;--ink2:#2e2d29;--ink3:#706d66;--ink4:#a8a49d;--accent:#c84b09;--accent2:#e85f1a;--accent-bg:rgba(200,75,9,.07);--green:#0f7a40;--green-bg:rgba(15,122,64,.07);--shadow:0 4px 20px rgba(0,0,0,.07)}
 
-/* SIDEBAR */
 .sidebar{width:260px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:.2s}
 .sidebar-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
 .sidebar-header .logo{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.9rem}
@@ -31,20 +32,23 @@ body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height
 .sidebar-footer .info{flex:1;overflow:hidden}
 .sidebar-footer .name{font-weight:600;color:var(--ink2)}
 .sidebar-footer .plan{font-size:.72rem;color:var(--ink4)}
+.sidebar-nav{padding:8px;border-top:1px solid var(--border)}
+.sidebar-nav a{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:.82rem;color:var(--ink3);text-decoration:none;transition:.1s}
+.sidebar-nav a:hover{background:var(--bg3);color:var(--ink2)}
+.sidebar-nav svg{width:16px;height:16px}
 
-/* MAIN */
 .main{flex:1;display:flex;flex-direction:column;min-width:0}
 .topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
 .model-badge{display:flex;align-items:center;gap:6px;background:var(--accent-bg);border:1px solid rgba(200,75,9,.2);border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:600;color:var(--accent);cursor:pointer;transition:.15s}
 .model-badge:hover{background:rgba(200,75,9,.15)}
 .model-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
 .usage-badge{font-size:.72rem;color:var(--ink4);background:var(--bg3);padding:4px 10px;border-radius:12px}
-.topbar-btn{background:transparent;border:1px solid var(--border2);color:var(--ink3);padding:6px 12px;border-radius:8px;font:inherit;font-size:.78rem;cursor:pointer;transition:.15s}
+.topbar-btn{background:transparent;border:1px solid var(--border2);color:var(--ink3);padding:6px 10px;border-radius:8px;font:inherit;font-size:.78rem;cursor:pointer;transition:.15s}
 .topbar-btn:hover{background:var(--bg3);color:var(--ink)}
+.topbar-btn svg{width:16px;height:16px}
 
-/* CHAT */
-.chat-area{flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column}
+.chat-area{flex:1;overflow-y:auto;display:flex;flex-direction:column}
 .chat-messages{max-width:768px;width:100%;margin:0 auto;padding:24px 20px;flex:1;display:flex;flex-direction:column;gap:24px}
 .msg{display:flex;gap:12px;animation:fadeIn .3s ease}
 .msg-user{justify-content:flex-end}
@@ -55,20 +59,18 @@ body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height
 .msg-user .msg-content{background:var(--bg3);border:1px solid var(--border);border-radius:16px 16px 4px 16px;padding:12px 16px}
 .msg-ai .msg-content{color:var(--ink)}
 .msg-content p{margin-bottom:8px}
-.msg-content p:last-child{margin-bottom:0}
-.msg-content pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;overflow-x:auto;margin:12px 0;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.5}
-.msg-content code{font-family:'JetBrains Mono',monospace;font-size:.85em;background:var(--bg3);padding:2px 6px;border-radius:4px}
+.msg-content pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;overflow-x:auto;margin:12px 0;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.5;position:relative}
 .msg-content pre code{background:transparent;padding:0}
+.msg-content code{font-family:'JetBrains Mono',monospace;font-size:.85em;background:var(--bg3);padding:2px 6px;border-radius:4px}
 .msg-content ul,.msg-content ol{margin:8px 0;padding-left:20px}
 .msg-content li{margin-bottom:4px}
 .msg-content blockquote{border-left:3px solid var(--accent);padding-left:12px;margin:12px 0;color:var(--ink3)}
-.msg-content h1,.msg-content h2,.msg-content h3{margin:16px 0 8px;font-weight:700}
-.msg-content h1{font-size:1.3rem}
-.msg-content h2{font-size:1.1rem}
-.msg-content h3{font-size:1rem}
 .msg-content table{border-collapse:collapse;margin:12px 0;width:100%}
 .msg-content th,.msg-content td{border:1px solid var(--border);padding:8px 12px;text-align:left;font-size:.82rem}
 .msg-content th{background:var(--bg3);font-weight:600}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.7rem;color:var(--ink3);cursor:pointer;opacity:0;transition:.15s}
+.msg-content pre:hover .copy-btn{opacity:1}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
 
 .typing-indicator{display:flex;gap:4px;padding:8px 0}
 .typing-indicator span{width:6px;height:6px;border-radius:50%;background:var(--ink4);animation:bounce 1.4s infinite}
@@ -77,7 +79,6 @@ body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height
 @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-/* WELCOME */
 .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px}
 .welcome h1{font-family:'Instrument Serif',serif;font-size:2.4rem;font-weight:400;margin-bottom:12px}
 .welcome h1 em{color:var(--accent);font-style:italic}
@@ -87,34 +88,64 @@ body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height
 .quick-prompt:hover{background:var(--bg3);color:var(--ink);border-color:var(--ink4)}
 .quick-prompt span{color:var(--accent);margin-right:6px}
 
-/* INPUT */
 .input-area{padding:16px 20px 24px;background:var(--bg);border-top:1px solid var(--border)}
 .input-wrap{max-width:768px;margin:0 auto;position:relative}
 .input-box{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 52px 14px 16px;color:var(--ink);font:inherit;font-size:.9rem;resize:none;outline:none;min-height:52px;max-height:200px;line-height:1.5;transition:.15s}
 .input-box:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg)}
 .input-box::placeholder{color:var(--ink4)}
-.send-btn{position:absolute;right:8px;bottom:8px;width:36px;height:36px;border-radius:10px;background:var(--accent);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;transition:.15s;opacity:.5}
+.input-actions{position:absolute;right:8px;bottom:8px;display:flex;gap:4px}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:transparent;color:var(--ink4);cursor:pointer;display:grid;place-items:center;transition:.15s}
+.icon-btn:hover{background:var(--bg3);color:var(--ink)}
+.icon-btn svg{width:16px;height:16px}
+.send-btn{width:36px;height:36px;border-radius:10px;background:var(--accent);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;transition:.15s;opacity:.5}
 .send-btn.active{opacity:1}
 .send-btn:hover{background:var(--accent2)}
 .send-btn svg{width:18px;height:18px}
 .input-footer{max-width:768px;margin:8px auto 0;display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--ink4)}
 
-/* AUTH MODAL */
+/* File strip */
+.file-strip{display:none;gap:8px;padding:8px 0;overflow-x:auto}
+.file-strip.show{display:flex}
+.file-chip{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.76rem;color:var(--ink3);flex-shrink:0}
+.file-chip svg{width:14px;height:14px}
+.file-chip .rm{cursor:pointer;color:var(--ink4);transition:.15s}
+.file-chip .rm:hover{color:var(--accent)}
+
+/* Modal */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:200}
 .modal-bg.open{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px;width:100%;max-width:400px;box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px;width:100%;max-width:440px;box-shadow:0 24px 80px rgba(0,0,0,.5)}
 .modal h2{font-family:'Instrument Serif',serif;font-size:1.6rem;font-weight:400;margin-bottom:8px}
-.modal p{color:var(--ink3);font-size:.88rem;margin-bottom:24px}
-.modal .fg{margin-bottom:16px}
+.modal p{color:var(--ink3);font-size:.88rem;margin-bottom:20px}
+.modal .fg{margin-bottom:14px}
 .modal label{display:block;font-size:.78rem;font-weight:600;margin-bottom:6px;color:var(--ink3)}
-.modal input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--ink);font:inherit;font-size:.88rem;outline:none}
-.modal input:focus{border-color:var(--accent)}
+.modal input,.modal textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--ink);font:inherit;font-size:.88rem;outline:none}
+.modal input:focus,.modal textarea:focus{border-color:var(--accent)}
+.modal textarea{min-height:80px;resize:vertical}
 .modal .btn{width:100%;padding:12px;border:none;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;margin-top:8px;transition:.15s}
 .modal .btn:hover{background:var(--accent2)}
 .modal .switch{margin-top:16px;text-align:center;font-size:.82rem;color:var(--ink3)}
 .modal .switch a{color:var(--accent);cursor:pointer;text-decoration:none}
 .modal .err{background:rgba(200,75,9,.1);border:1px solid rgba(200,75,9,.2);color:var(--accent);padding:8px 12px;border-radius:8px;font-size:.82rem;margin-bottom:16px;display:none}
 .modal .err.show{display:block}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-actions .btn{flex:1}
+.modal-actions .btn-ghost{background:transparent;color:var(--ink3);border:1px solid var(--border2)}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 20px;font-size:.84rem;color:var(--ink2);box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideIn .3s ease;max-width:320px}
+.toast.ok{border-color:rgba(34,197,94,.3)}
+.toast.err{border-color:rgba(239,68,68,.3);color:var(--red)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* Voice */
+.recording{animation:pulse 1.5s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* Share tooltip */
+.share-tooltip{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.78rem;color:var(--ink2);box-shadow:var(--shadow);z-index:50;display:none}
+.share-tooltip.show{display:block}
 
 @media(max-width:768px){
   .sidebar{position:fixed;left:-260px;top:0;bottom:0;z-index:100;transition:.2s}
@@ -132,10 +163,16 @@ body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height
     <div class="brand">Tribal AI</div>
   </div>
   <button class="new-chat-btn" onclick="newChat()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     New Chat
   </button>
   <div class="chat-list" id="chatList"></div>
+  <div class="sidebar-nav">
+    <a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Dashboard</a>
+    <a href="settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Settings</a>
+    <a href="pricing.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Upgrade</a>
+    <a onclick="showReferralModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Referrals</a>
+  </div>
   <div class="sidebar-footer" id="userFooter" style="display:none">
     <div class="avatar" id="userAvatar">U</div>
     <div class="info">
@@ -154,10 +191,18 @@ body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height
     <div class="model-badge">
       <span class="dot"></span>
       <span id="modelLabel">Claude Sonnet 4</span>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
     <div class="topbar-right">
-      <div class="usage-badge" id="usageBadge">50 messages left</div>
+      <div class="usage-badge" id="usageBadge">50 left</div>
+      <button class="topbar-btn" onclick="toggleTheme()" title="Toggle theme">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="topbar-btn" onclick="exportChat()" title="Export chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+      <button class="topbar-btn" onclick="shareChat()" title="Share chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      </button>
       <button class="topbar-btn" id="authBtn" onclick="showAuth('login')">Sign In</button>
     </div>
   </div>
@@ -180,12 +225,22 @@ body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height
 
   <div class="input-area">
     <div class="input-wrap">
+      <div class="file-strip" id="fileStrip"></div>
       <textarea class="input-box" id="inputBox" placeholder="Message Tribal AI…" rows="1"
         onkeydown="handleKey(event)" oninput="autoResize(this);updateSendBtn()"></textarea>
-      <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-      </button>
+      <div class="input-actions">
+        <button class="icon-btn" onclick="triggerFileUpload()" title="Upload file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <button class="icon-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
+      </div>
     </div>
+    <input type="file" id="fileInput" style="display:none" multiple accept="image/*,.pdf,.txt,.csv,.json,.md,.py,.js,.ts,.html,.css" onchange="handleFiles(this.files)">
     <div class="input-footer">
       <span>Tribal AI can make mistakes. Verify important info.</span>
       <span id="charCount">0</span>
@@ -212,6 +267,10 @@ body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height
         <label>Password</label>
         <input type="password" id="authPassword" placeholder="Your password" required>
       </div>
+      <div class="fg" id="refField" style="display:none">
+        <label>Referral Code (optional)</label>
+        <input type="text" id="authRef" placeholder="Enter code for bonus">
+      </div>
       <button type="submit" class="btn" id="authSubmitBtn">Sign In</button>
     </form>
     <div class="switch">
@@ -219,6 +278,68 @@ body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height
     </div>
   </div>
 </div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>Custom Instructions</h2>
+    <p>Set a system prompt that guides how AI responds to you.</p>
+    <div class="fg">
+      <label>Instructions</label>
+      <textarea id="customInstructions" placeholder="e.g. You are a senior Python developer. Always write clean, well-commented code."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
+      <button class="btn" onclick="saveInstructions()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- REFERRAL MODAL -->
+<div class="modal-bg" id="referralModal">
+  <div class="modal">
+    <h2>Refer Friends, Earn Messages</h2>
+    <p>Share your code. When friends sign up, you both get 10 bonus messages.</p>
+    <div class="fg">
+      <label>Your Referral Code</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="refCode" readonly style="flex:1;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.1rem;text-align:center;letter-spacing:.1em">
+        <button class="btn" style="width:auto;padding:10px 16px" onclick="copyRefCode()">Copy</button>
+      </div>
+    </div>
+    <div style="text-align:center;margin:16px 0">
+      <div style="font-size:.82rem;color:var(--ink3)">Friends referred: <strong id="refCount">0</strong></div>
+      <div style="font-size:.82rem;color:var(--accent);margin-top:4px">Bonus messages earned: <strong id="refBonus">0</strong></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeReferral()">Close</button>
+      <button class="btn" onclick="shareReferral()">Share Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-bg" id="paymentModal">
+  <div class="modal">
+    <h2>Upgrade to Pro</h2>
+    <p>Unlimited messages, priority speed, all models. ₦2,500/month.</p>
+    <div id="paymentStatus" style="text-align:center;padding:20px 0">
+      <div style="font-size:.88rem;color:var(--ink3)">Click below to proceed to payment.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closePayment()">Cancel</button>
+      <button class="btn" id="payBtn" onclick="initPayment()">Pay ₦2,500</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE TOAST -->
+<div class="share-tooltip" id="shareTooltip"></div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<input type="file" id="fileInputCamera" style="display:none" accept="image/*" capture="environment" onchange="handleFiles(this.files)">
+<input type="file" id="fileInputPhotos" style="display:none" accept="image/*" multiple onchange="handleFiles(this.files)">
 
 <script>
 // ── Config ──────────────────────────────────────────────────────────────────
@@ -229,16 +350,28 @@ let chats = [];
 let activeChatId = null;
 let busy = false;
 let authMode = 'login';
+let pendingFiles = [];
+let voiceRecognition = null;
+let isRecording = false;
 
 // ── Marked config ──────────────────────────────────────────────────────────
 marked.setOptions({ highlight: (code, lang) => { if (lang && hljs.getLanguage(lang)) return hljs.highlight(code, { language: lang }).value; return hljs.highlightAuto(code).value; }, breaks: true, gfm: true });
 
 // ── Init ──────────────────────────────────────────────────────────────────
-if (token && user) {
-  showLoggedIn();
-  loadChats();
-} else {
-  showLoggedOut();
+if (token && user) { showLoggedIn(); loadChats(); loadUserSettings(); }
+else { showLoggedOut(); }
+if (user?.theme === 'light') document.body.classList.add('light');
+// Check shared chat in URL
+const urlParams = new URLSearchParams(window.location.search);
+const sharedChat = urlParams.get('chat');
+if (sharedChat && !token) { showAuth('login'); }
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  const theme = document.body.classList.contains('light') ? 'light' : 'dark';
+  if (token) fetch(`${API}/api/me`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ theme }) });
+  if (user) { user.theme = theme; localStorage.setItem('ta_user', JSON.stringify(user)); }
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────
@@ -249,6 +382,7 @@ function showAuth(mode) {
   document.getElementById('authSub').textContent = mode === 'login' ? 'Welcome back to Tribal AI' : 'Start chatting with AI in seconds';
   document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Sign In' : 'Sign Up';
   document.getElementById('nameField').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('refField').style.display = mode === 'register' ? 'block' : 'none';
   document.getElementById('authSwitch').innerHTML = mode === 'login'
     ? 'Don\'t have an account? <a onclick="toggleAuthMode()">Sign up</a>'
     : 'Already have an account? <a onclick="toggleAuthMode()">Sign in</a>';
@@ -266,7 +400,10 @@ async function handleAuth(e) {
   btn.disabled = true; btn.textContent = 'Loading...';
   try {
     const body = { email: document.getElementById('authEmail').value.trim(), password: document.getElementById('authPassword').value };
-    if (authMode === 'register') body.name = document.getElementById('authName').value.trim();
+    if (authMode === 'register') {
+      body.name = document.getElementById('authName').value.trim();
+      body.referralCode = document.getElementById('authRef').value.trim();
+    }
     const r = await fetch(`${API}/api/${authMode === 'login' ? 'login' : 'register'}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
     });
@@ -275,7 +412,7 @@ async function handleAuth(e) {
     token = data.token; user = data.user;
     localStorage.setItem('ta_token', token);
     localStorage.setItem('ta_user', JSON.stringify(user));
-    closeAuth(); showLoggedIn(); loadChats();
+    closeAuth(); showLoggedIn(); loadChats(); loadUserSettings();
   } catch (err) {
     errEl.textContent = err.message; errEl.classList.add('show');
   } finally { btn.disabled = false; btn.textContent = authMode === 'login' ? 'Sign In' : 'Sign Up'; }
@@ -284,21 +421,43 @@ async function handleAuth(e) {
 function logout() {
   token = null; user = null; chats = []; activeChatId = null;
   localStorage.removeItem('ta_token'); localStorage.removeItem('ta_user');
-  showLoggedOut();
+  showLoggedOut(); newChat();
 }
 
 function showLoggedIn() {
   document.getElementById('authBtn').textContent = 'Sign Out';
   document.getElementById('authBtn').onclick = logout;
   document.getElementById('userFooter').style.display = 'flex';
-  document.getElementById('userName').textContent = user?.name || user?.email || 'User';
+  document.getElementById('userName').textContent = user?.name || user?.email?.split('@')[0] || 'User';
   document.getElementById('userPlan').textContent = (user?.plan || 'free') + ' plan';
   document.getElementById('userAvatar').textContent = (user?.name || user?.email || 'U')[0].toUpperCase();
+  updateUsageBadge();
 }
 function showLoggedOut() {
   document.getElementById('authBtn').textContent = 'Sign In';
   document.getElementById('authBtn').onclick = () => showAuth('login');
   document.getElementById('userFooter').style.display = 'none';
+}
+
+async function loadUserSettings() {
+  if (!token) return;
+  try {
+    const r = await fetch(`${API}/api/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) {
+      const me = await r.json();
+      user = { ...user, ...me };
+      localStorage.setItem('ta_user', JSON.stringify(user));
+      updateUsageBadge();
+      if (me.customInstructions) document.getElementById('customInstructions').value = me.customInstructions;
+    }
+  } catch {}
+}
+
+function updateUsageBadge() {
+  const limit = user?.plan === 'pro' ? 9999 : 50;
+  const used = user?.messagesThisMonth || 0;
+  const remaining = Math.max(0, limit - used);
+  document.getElementById('usageBadge').textContent = user?.plan === 'pro' ? '∞ Pro' : `${remaining} left`;
 }
 
 // ── Chats ──────────────────────────────────────────────────────────────────
@@ -347,7 +506,7 @@ async function openChat(id) {
   } catch {}
 }
 
-// ── Chat ──────────────────────────────────────────────────────────────────
+// ── Send Message ──────────────────────────────────────────────────────────
 function quickPrompt(text) {
   document.getElementById('inputBox').value = text;
   updateSendBtn();
@@ -358,7 +517,7 @@ async function sendMessage() {
   if (busy) return;
   const input = document.getElementById('inputBox');
   const msg = input.value.trim();
-  if (!msg) return;
+  if (!msg && !pendingFiles.length) return;
   if (!token) return showAuth('login');
 
   input.value = ''; autoResize(input); updateSendBtn();
@@ -366,29 +525,47 @@ async function sendMessage() {
   const msgEl = document.getElementById('chatMessages');
   msgEl.style.display = 'flex';
 
-  appendMsg('user', msg);
+  // Show user message
+  if (msg) appendMsg('user', msg);
+  if (pendingFiles.length) {
+    pendingFiles.forEach(f => appendMsg('user', `📎 ${f.name}`));
+    clearFiles();
+  }
+
   showTyping();
   scrollToBottom();
   busy = true;
 
   try {
-    const r = await fetch(`${API}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ chatId: activeChatId, message: msg })
-    });
-    const data = await r.json();
+    let data;
+    if (pendingFiles.length || (msg && msg.includes('image'))) {
+      // File upload
+      const r = await fetch(`${API}/api/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ chatId: activeChatId, message: msg, files: pendingFiles.map(f => ({ name: f.name, type: f.type, b64: f.b64 })) })
+      });
+      data = await r.json();
+      data.chatId = activeChatId;
+      data.remaining = '?';
+    } else {
+      const r = await fetch(`${API}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ chatId: activeChatId, message: msg })
+      });
+      data = await r.json();
+    }
+
     hideTyping();
-    if (!r.ok) {
-      if (data.limitReached) {
-        appendMsg('assistant', `⚠️ ${data.error}\n\nUpgrade to Pro for unlimited messages.`);
-      } else {
-        appendMsg('assistant', `❌ Error: ${data.error}`);
-      }
+    if (!r.ok && data.limitReached) {
+      appendMsg('assistant', `⚠️ ${data.error}\n\n[Upgrade to Pro](pricing.html) for unlimited messages.`);
+    } else if (data.error) {
+      appendMsg('assistant', `❌ Error: ${data.error}`);
     } else {
       appendMsg('assistant', data.response);
-      if (!activeChatId) { activeChatId = data.chatId; loadChats(); }
-      document.getElementById('usageBadge').textContent = `${data.remaining} messages left`;
+      if (!activeChatId && data.chatId) { activeChatId = data.chatId; loadChats(); }
+      if (data.remaining !== undefined) document.getElementById('usageBadge').textContent = data.remaining === '?' ? '∞' : `${data.remaining} left`;
     }
   } catch (e) {
     hideTyping();
@@ -408,6 +585,15 @@ function appendMsg(role, content) {
     <div class="msg-avatar">${avatar}</div>
     <div class="msg-content">${rendered}</div>
   `;
+  // Add copy button to code blocks
+  div.querySelectorAll('pre').forEach(pre => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.onclick = () => { navigator.clipboard.writeText(pre.textContent); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); };
+    pre.style.position = 'relative';
+    pre.appendChild(btn);
+  });
   msgEl.appendChild(div);
 }
 
@@ -422,11 +608,181 @@ function hideTyping() { const el = document.getElementById('typingMsg'); if (el)
 function scrollToBottom() { const el = document.getElementById('chatArea'); el.scrollTop = el.scrollHeight; }
 function esc(t) { return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// ── File Upload ──────────────────────────────────────────────────────────
+function triggerFileUpload() { document.getElementById('fileInput').click(); }
+function handleFiles(files) {
+  Array.from(files).forEach(file => {
+    if (file.size > 10 * 1024 * 1024) { toast('File too large (max 10MB)', 'err'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const b64 = e.target.result.split(',')[1];
+      pendingFiles.push({ name: file.name, type: file.type, b64, size: file.size });
+      renderFileStrip();
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('fileInput').value = '';
+}
+function renderFileStrip() {
+  const strip = document.getElementById('fileStrip');
+  if (!pendingFiles.length) { strip.classList.remove('show'); strip.innerHTML = ''; return; }
+  strip.classList.add('show');
+  strip.innerHTML = pendingFiles.map((f, i) => `
+    <div class="file-chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      ${esc(f.name)}
+      <span class="rm" onclick="removeFile(${i})">✕</span>
+    </div>
+  `).join('');
+}
+function removeFile(i) { pendingFiles.splice(i, 1); renderFileStrip(); }
+function clearFiles() { pendingFiles = []; renderFileStrip(); }
+
+// ── Voice Input ──────────────────────────────────────────────────────────
+function toggleVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Speech recognition not supported in this browser', 'err'); return; }
+  if (isRecording) { voiceRecognition?.stop(); return; }
+  voiceRecognition = new SR();
+  voiceRecognition.continuous = false;
+  voiceRecognition.interimResults = true;
+  voiceRecognition.lang = 'en-US';
+  voiceRecognition.onstart = () => { isRecording = true; document.getElementById('voiceBtn').classList.add('recording'); };
+  voiceRecognition.onend = () => { isRecording = false; document.getElementById('voiceBtn').classList.remove('recording'); };
+  voiceRecognition.onerror = () => { isRecording = false; document.getElementById('voiceBtn').classList.remove('recording'); };
+  voiceRecognition.onresult = (e) => {
+    let transcript = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) transcript += e.results[i][0].transcript;
+    document.getElementById('inputBox').value = transcript;
+    updateSendBtn();
+    if (e.results[e.results.length - 1].isFinal) { voiceRecognition.stop(); sendMessage(); }
+  };
+  voiceRecognition.start();
+}
+
+// ── Export Chat ──────────────────────────────────────────────────────────
+function exportChat() {
+  if (!token) return showAuth('login');
+  if (!activeChatId) { toast('Open a chat first', 'err'); return; }
+  window.open(`${API}/api/chats/${activeChatId}/export?format=txt`, '_blank');
+}
+
+// ── Share Chat ──────────────────────────────────────────────────────────
+async function shareChat() {
+  if (!token) return showAuth('login');
+  if (!activeChatId) { toast('Open a chat first', 'err'); return; }
+  try {
+    const r = await fetch(`${API}/api/chats/${activeChatId}/share`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await r.json();
+    if (data.shared) {
+      const url = `${window.location.origin}${data.url}`;
+      navigator.clipboard.writeText(url);
+      toast('Share link copied to clipboard!', 'ok');
+    } else {
+      toast('Chat sharing disabled', 'ok');
+    }
+  } catch { toast('Failed to share', 'err'); }
+}
+
+// ── Referrals ──────────────────────────────────────────────────────────
+async function showReferralModal() {
+  if (!token) return showAuth('login');
+  document.getElementById('referralModal').classList.add('open');
+  try {
+    const r = await fetch(`${API}/api/referrals`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (r.ok) {
+      const data = await r.json();
+      document.getElementById('refCode').value = data.code || '';
+      document.getElementById('refCount').textContent = data.count || 0;
+      document.getElementById('refBonus').textContent = data.bonusMessages || 0;
+    }
+  } catch {}
+}
+function closeReferral() { document.getElementById('referralModal').classList.remove('open'); }
+document.getElementById('referralModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeReferral(); });
+function copyRefCode() {
+  const code = document.getElementById('refCode').value;
+  navigator.clipboard.writeText(code);
+  toast('Referral code copied!', 'ok');
+}
+function shareReferral() {
+  const code = document.getElementById('refCode').value;
+  const url = `${window.location.origin}/signup?ref=${code}`;
+  const text = `Join Tribal AI — Chat, Code, Create with AI. Use my code: ${code}\n${url}`;
+  if (navigator.share) navigator.share({ title: 'Tribal AI', text });
+  else { navigator.clipboard.writeText(text); toast('Share link copied!', 'ok'); }
+}
+
+// ── Payment ──────────────────────────────────────────────────────────
+function showPaymentModal() {
+  if (!token) return showAuth('login');
+  if (user?.plan === 'pro') { toast('You already have Pro!', 'ok'); return; }
+  document.getElementById('paymentModal').classList.add('open');
+}
+function closePayment() { document.getElementById('paymentModal').classList.remove('open'); }
+document.getElementById('paymentModal').addEventListener('click', e => { if (e.target === e.currentTarget) closePayment(); });
+
+async function initPayment() {
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true; btn.textContent = 'Processing...';
+  try {
+    const r = await fetch(`${API}/api/payments/initialize`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+    });
+    const data = await r.json();
+    if (data.authorization_url) {
+      if (data.demo) {
+        // Demo mode — auto-verify
+        await fetch(`${API}/api/payments/verify`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ reference: data.reference })
+        });
+        user.plan = 'pro';
+        localStorage.setItem('ta_user', JSON.stringify(user));
+        showLoggedIn();
+        closePayment();
+        toast('Pro activated! (Demo mode)', 'ok');
+      } else {
+        window.location.href = data.authorization_url;
+      }
+    }
+  } catch (e) { toast('Payment failed', 'err'); }
+  finally { btn.disabled = false; btn.textContent = 'Pay ₦2,500'; }
+}
+
+// ── Settings ──────────────────────────────────────────────────────────
+function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
+function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
+document.getElementById('settingsModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSettings(); });
+
+async function saveInstructions() {
+  if (!token) return;
+  const instructions = document.getElementById('customInstructions').value.trim();
+  try {
+    await fetch(`${API}/api/me`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ customInstructions: instructions })
+    });
+    toast('Instructions saved', 'ok');
+    closeSettings();
+  } catch { toast('Failed to save', 'err'); }
+}
+
 // ── UI Helpers ──────────────────────────────────────────────────────────
 function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
 function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 200) + 'px'; }
-function updateSendBtn() { document.getElementById('sendBtn').classList.toggle('active', document.getElementById('inputBox').value.trim().length > 0); document.getElementById('charCount').textContent = document.getElementById('inputBox').value.length; }
+function updateSendBtn() { document.getElementById('sendBtn').classList.toggle('active', document.getElementById('inputBox').value.trim().length > 0 || pendingFiles.length > 0); document.getElementById('charCount').textContent = document.getElementById('inputBox').value.length; }
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function toast(msg, type = 'ok') {
+  const wrap = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, 3000);
+}
 </script>
 </body>
 </html>
