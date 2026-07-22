@@ -2,10 +2,10 @@
   "name": "tribal-ai",
   "version": "19.3.0",
   "description": "Tribal AI — Chat, Code, Create",
-  "main": "ai-saas/backend/server.js",
+  "main": "backend/server.js",
   "scripts": {
-    "start": "node ai-saas/backend/server.js",
-    "build": "cd ai-saas && npm install"
+    "start": "node backend/server.js",
+    "build": "npm install"
   },
   "dependencies": {
     "express": "^4.21.0",
