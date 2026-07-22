@@ -1,5 +1,67 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Tribal AI — Playground</title><link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"><script>function icon(name){return '<svg width="16" height="16" style="display:inline-block;vertical-align:middle"><use href="#icon-'+name+'"/></svg>'}</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script><style>:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--r:12px}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column}nav{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 6%;gap:12px;flex-shrink:0}.brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.88rem}.mark{width:28px;height:28px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.8rem}.watermark{margin-left:auto;font-size:.72rem;color:var(--ink4);background:var(--bg3);padding:4px 10px;border-radius:8px}.chat-area{flex:1;overflow-y:auto;display:flex;flex-direction:column}.messages{max-width:700px;width:100%;margin:0 auto;padding:24px 20px;flex:1;display:flex;flex-direction:column;gap:20px}.msg{display:flex;gap:10px}.msg-user{justify-content:flex-end}.avatar{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;font-size:.65rem;font-weight:700;flex-shrink:0}.msg-user .avatar{background:var(--accent);color:#fff}.msg-ai .avatar{background:var(--bg3);color:var(--ink2);border:1px solid var(--border)}.content{max-width:85%;font-size:.88rem;line-height:1.65;color:var(--ink2)}.msg-user .content{background:var(--bg3);border:1px solid var(--border);border-radius:14px 14px 4px 14px;padding:10px 14px}.msg-ai .content{color:var(--ink)}.content p{margin-bottom:6px}pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;overflow-x:auto;margin:10px 0;font-family:'JetBrains Mono',monospace;font-size:.8rem}pre code{background:transparent;padding:0}code{font-family:'JetBrains Mono',monospace;font-size:.84em;background:var(--bg3);padding:2px 5px;border-radius:4px}.typing span{width:5px;height:5px;border-radius:50%;background:var(--ink4);display:inline-block;animation:b 1.4s infinite}.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}@keyframes b{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}.input-area{padding:12px 20px 20px;border-top:1px solid var(--border)}.input-wrap{max-width:700px;margin:0 auto;display:flex;gap:8px}.input-box{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--ink);font:inherit;font-size:.88rem;outline:none;resize:none;max-height:120px}.input-box:focus{border-color:var(--accent)}.send-btn{width:40px;height:40px;border-radius:var(--r);background:var(--accent);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;opacity:.5;transition:.15s}.send-btn.active{opacity:1}.send-btn:hover{background:#e85f1a}.footer{text-align:center;font-size:.72rem;color:var(--ink4);padding:8px}.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}.welcome h1{font-family:'Instrument Serif',serif;font-size:2rem;margin-bottom:8px}em{color:var(--accent);font-style:italic}.welcome p{color:var(--ink3);margin-bottom:24px}.prompts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.prompt{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;font:inherit;font-size:.8rem;color:var(--ink3);cursor:pointer}.prompt:hover{background:var(--bg3);color:var(--ink)}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tribal AI — Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script>function icon(name){return '<svg width="16" height="16" style="display:inline-block;vertical-align:middle"><use href="#icon-'+name+'"/></svg>'}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--bg3:#242320;--surface:#1e1d1a;--border:#2e2d29;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--ink4:#706d66;--accent:#c84b09;--accent2:#e85f1a;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+nav{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 6%;gap:12px;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.88rem}
+.mark{width:28px;height:28px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff;font-family:'Instrument Serif',serif;font-size:.8rem}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.watermark{font-size:.72rem;color:var(--ink4);background:var(--bg3);padding:4px 10px;border-radius:8px;text-decoration:none;transition:.15s}
+.watermark:hover{color:var(--ink2);background:var(--border)}
+.user-badge{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--ink2);padding:4px 12px;border-radius:8px;background:var(--bg3);border:1px solid var(--border)}
+.user-badge .avatar-sm{width:24px;height:24px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff;font-size:.6rem;font-weight:700}
+.nav-link{font-size:.78rem;color:var(--ink3);text-decoration:none;padding:5px 10px;border-radius:8px;transition:.15s}
+.nav-link:hover{color:var(--ink);background:var(--bg3)}
+.logout-btn{font-size:.78rem;color:var(--ink4);background:none;border:1px solid var(--border);padding:5px 10px;border-radius:8px;cursor:pointer;transition:.15s;font-family:inherit}
+.logout-btn:hover{color:var(--accent);border-color:var(--accent)}
+.chat-area{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.messages{max-width:700px;width:100%;margin:0 auto;padding:24px 20px;flex:1;display:flex;flex-direction:column;gap:20px}
+.msg{display:flex;gap:10px}
+.msg-user{justify-content:flex-end}
+.avatar{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;font-size:.65rem;font-weight:700;flex-shrink:0}
+.msg-user .avatar{background:var(--accent);color:#fff}
+.msg-ai .avatar{background:var(--bg3);color:var(--ink2);border:1px solid var(--border)}
+.content{max-width:85%;font-size:.88rem;line-height:1.65;color:var(--ink2)}
+.msg-user .content{background:var(--bg3);border:1px solid var(--border);border-radius:14px 14px 4px 14px;padding:10px 14px}
+.msg-ai .content{color:var(--ink)}
+.content p{margin-bottom:6px}
+pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;overflow-x:auto;margin:10px 0;font-family:'JetBrains Mono',monospace;font-size:.8rem}
+pre code{background:transparent;padding:0}
+code{font-family:'JetBrains Mono',monospace;font-size:.84em;background:var(--bg3);padding:2px 5px;border-radius:4px}
+.typing span{width:5px;height:5px;border-radius:50%;background:var(--ink4);display:inline-block;animation:b 1.4s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes b{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.input-area{padding:12px 20px 20px;border-top:1px solid var(--border)}
+.input-wrap{max-width:700px;margin:0 auto;display:flex;gap:8px}
+.input-box{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--ink);font:inherit;font-size:.88rem;outline:none;resize:none;max-height:120px}
+.input-box:focus{border-color:var(--accent)}
+.send-btn{width:40px;height:40px;border-radius:var(--r);background:var(--accent);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;opacity:.5;transition:.15s}
+.send-btn.active{opacity:1}
+.send-btn:hover{background:var(--accent2)}
+.footer{text-align:center;font-size:.72rem;color:var(--ink4);padding:8px}
+.footer a{color:var(--accent);text-decoration:none}
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
+.welcome h1{font-family:'Instrument Serif',serif;font-size:2rem;margin-bottom:8px}
+em{color:var(--accent);font-style:italic}
+.welcome p{color:var(--ink3);margin-bottom:24px}
+.prompts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.prompt{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;font:inherit;font-size:.8rem;color:var(--ink3);cursor:pointer}
+.prompt:hover{background:var(--bg3);color:var(--ink)}
+</style>
+</head>
+<body>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
 <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
 <symbol id="icon-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol>
@@ -14,22 +76,195 @@
 <symbol id="icon-document" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></symbol>
 <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
 <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
-<symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
-<symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
-<symbol id="icon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
-<symbol id="icon-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></symbol>
-<symbol id="icon-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
-<symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
-<symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
-<symbol id="icon-split" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M16 21h5v-5"/><path d="M8 21H3v-5"/><path d="M21 21l-7-7"/><path d="M3 21l7-7"/></symbol>
+<symbol id="icon-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></symbol>
+<symbol id="icon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
 <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
-<symbol id="icon-smile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></symbol>
-<symbol id="icon-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
-<symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
-<symbol id="icon-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></symbol>
-<symbol id="icon-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></symbol>
-<symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
-<symbol id="icon-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></symbol>
-<symbol id="icon-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A5.5 5.5 0 0 0 4 7.5c0 1.33.47 2.55 1.25 3.5A5.5 5.5 0 0 0 4 14.5a5.5 5.5 0 0 0 5.5 5.5h1v-3h-1a2.5 2.5 0 0 1 0-5h1V8.5h-1A2.5 2.5 0 0 1 7 6a2.5 2.5 0 0 1 2.5-2.5H9.5z"/><path d="M14.5 2A5.5 5.5 0 0 1 20 7.5c0 1.33-.47 2.55-1.25 3.5A5.5 5.5 0 0 1 20 14.5a5.5 5.5 0 0 1-5.5 5.5h-1v-3h1a2.5 2.5 0 0 0 0-5h1V8.5h-1a2.5 2.5 0 0 0 0-5h1A2.5 2.5 0 0 0 14.5 6z"/></symbol>
 </svg>
-<nav><a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a><a class="watermark" href="signup.html">Sign up for full access →</a></nav><div class="chat-area"><div class="welcome" id="welcome"><h1>Try <em>Tribal AI</em> free</h1><p>No account needed. Limited to 5 messages.</p><div class="prompts"><div class="prompt" onclick="qp('Write a Python function to sort a list')"><svg width="16" height="16" style="display:inline-block;vertical-align:middle"><use href="#icon-zap"/></svg> Sort a list</div><div class="prompt" onclick="qp('Explain quantum computing simply')"><svg width="16" height="16" style="display:inline-block;vertical-align:middle"><use href="#icon-zap"/></svg> Quantum computing</div><div class="prompt" onclick="qp('Write a professional email')"><svg width="16" height="16" style="display:inline-block;vertical-align:middle"><use href="#icon-mail"/></svg> Write email</div><div class="prompt" onclick="qp('Debug this code: print(1/0)')"><svg width="16" height="16" style="display:inline-block;vertical-align:middle"><use href="#icon-alert"/></svg> Debug code</div></div></div><div class="messages" id="msgs" style="display:none"></div></div><div class="input-area"><div class="input-wrap"><textarea class="input-box" id="input" placeholder="Message Tribal AI…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';document.getElementById('send').classList.toggle('active',this.value.trim().length>0)"></textarea><button class="send-btn" id="send" onclick="send()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button></div><div class="footer">Tribal AI can make mistakes. <a href="signup.html" style="color:var(--accent)">Sign up</a> for full access.</div></div><script>marked.setOptions({highlight:(c,l)=>l&&hljs.getLanguage(l)?hljs.highlight(c,{language:l}).value:hljs.highlightAuto(c).value,breaks:true,gfm:true});let count=0;const MAX=5;function qp(t){document.getElementById('input').value=t;send()}async function send(){const input=document.getElementById('input');const msg=input.value.trim();if(!msg||count>=MAX)return;input.value='';input.style.height='auto';document.getElementById('send').classList.remove('active');document.getElementById('welcome').style.display='none';const m=document.getElementById('msgs');m.style.display='flex';appendMsg('user',msg);showTyping();count++;try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});const d=await r.json();hideTyping();appendMsg('assistant',d.response||d.error||'No response');if(count>=MAX)appendMsg('assistant','icon("alert") **Demo limit reached.** [Sign up](signup.html) for unlimited messages.');}catch{hideTyping();appendMsg('assistant','Network error. Try again.');}m.scrollTop=m.scrollHeight}function appendMsg(role,content){const m=document.getElementById('msgs');const d=document.createElement('div');d.className='msg msg-'+(role==='user'?'user':'ai');d.innerHTML=`<div class="avatar">${role==='user'?'Y':'T'}</div><div class="content">${role==='assistant'?marked.parse(content):content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>`;m.appendChild(d)}function showTyping(){const m=document.getElementById('msgs');const d=document.createElement('div');d.className='msg msg-ai';d.id='typing';d.innerHTML='<div class="avatar">T</div><div class="content"><div class="typing"><span></span><span></span><span></span></div></div>';m.appendChild(d);m.scrollTop=m.scrollHeight}function hideTyping(){const e=document.getElementById('typing');if(e)e.remove()}</script></body></html>
+
+<nav>
+  <a class="brand" href="/"><span class="mark">T</span><span>Tribal AI</span></a>
+  <div class="nav-right" id="navRight"></div>
+</nav>
+
+<div class="chat-area">
+  <div class="welcome" id="welcome"></div>
+  <div class="messages" id="msgs" style="display:none"></div>
+</div>
+
+<div class="input-area">
+  <div class="input-wrap">
+    <textarea class="input-box" id="input" placeholder="Message Tribal AI…" rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';document.getElementById('send').classList.toggle('active',this.value.trim().length>0)"></textarea>
+    <button class="send-btn" id="send" onclick="send()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+        <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+      </svg>
+    </button>
+  </div>
+  <div class="footer" id="footerArea"></div>
+</div>
+
+<script>
+// ── Auth State ───────────────────────────────────────────────────────────
+const token = localStorage.getItem('ta_token') || sessionStorage.getItem('ta_token');
+const user = JSON.parse(localStorage.getItem('ta_user') || 'null');
+const isLoggedIn = !!(token && user);
+const isDemo = !isLoggedIn;
+
+// ── Config ───────────────────────────────────────────────────────────────
+const DEMO_MAX = 5;
+const PRO_MAX = 9999;
+let count = 0;
+let maxMessages = isDemo ? DEMO_MAX : PRO_MAX;
+
+// ── Marked setup ─────────────────────────────────────────────────────────
+marked.setOptions({
+  highlight: (c, l) => l && hljs.getLanguage(l) ? hljs.highlight(c, {language: l}).value : hljs.highlightAuto(c).value,
+  breaks: true, gfm: true
+});
+
+// ── Init UI based on auth state ──────────────────────────────────────────
+function init() {
+  const navRight = document.getElementById('navRight');
+  const welcome = document.getElementById('welcome');
+  const footer = document.getElementById('footerArea');
+
+  if (isLoggedIn) {
+    const initial = (user.name || user.email || 'U')[0].toUpperCase();
+    navRight.innerHTML = `
+      <span class="user-badge"><span class="avatar-sm">${initial}</span>${esc(user.name || user.email)}</span>
+      <a class="nav-link" href="dashboard.html">Dashboard</a>
+      <a class="nav-link" href="settings.html">Settings</a>
+      <button class="logout-btn" onclick="logout()">Sign out</button>
+    `;
+    welcome.innerHTML = `
+      <h1>Welcome back, <em>${esc(user.name || 'there')}</em></h1>
+      <p>You have unlimited messages on the ${user.plan === 'pro' ? 'Pro' : 'Free'} plan.</p>
+      <div class="prompts">
+        <div class="prompt" onclick="qp('Write a Python function to sort a list')">${icon('zap')} Sort a list</div>
+        <div class="prompt" onclick="qp('Explain quantum computing simply')">${icon('zap')} Quantum computing</div>
+        <div class="prompt" onclick="qp('Write a professional email')">${icon('mail')} Write email</div>
+        <div class="prompt" onclick="qp('Debug this code: print(1/0)')">${icon('alert')} Debug code</div>
+      </div>
+    `;
+    footer.innerHTML = `Tribal AI can make mistakes. <a href="settings.html">Manage your account.</a>`;
+  } else {
+    navRight.innerHTML = `
+      <a class="watermark" href="login.html">Sign in</a>
+      <a class="watermark" href="signup.html" style="background:var(--accent);color:#fff;border-color:var(--accent)">Sign up free</a>
+    `;
+    welcome.innerHTML = `
+      <h1>Try <em>Tribal AI</em> free</h1>
+      <p>No account needed. Limited to ${DEMO_MAX} messages.</p>
+      <div class="prompts">
+        <div class="prompt" onclick="qp('Write a Python function to sort a list')">${icon('zap')} Sort a list</div>
+        <div class="prompt" onclick="qp('Explain quantum computing simply')">${icon('zap')} Quantum computing</div>
+        <div class="prompt" onclick="qp('Write a professional email')">${icon('mail')} Write email</div>
+        <div class="prompt" onclick="qp('Debug this code: print(1/0)')">${icon('alert')} Debug code</div>
+      </div>
+    `;
+    footer.innerHTML = `Tribal AI can make mistakes. <a href="signup.html">Sign up</a> for full access.`;
+  }
+}
+
+// ── Send message ─────────────────────────────────────────────────────────
+function qp(t) {
+  document.getElementById('input').value = t;
+  send();
+}
+
+async function send() {
+  const input = document.getElementById('input');
+  const msg = input.value.trim();
+  if (!msg || count >= maxMessages) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('send').classList.remove('active');
+  document.getElementById('welcome').style.display = 'none';
+
+  const m = document.getElementById('msgs');
+  m.style.display = 'flex';
+  appendMsg('user', msg);
+  showTyping();
+  count++;
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        message: msg,
+        chatId: currentChatId || undefined
+      })
+    });
+    const d = await r.json();
+    hideTyping();
+
+    if (d.error && !d.response) {
+      appendMsg('assistant', '⚠️ ' + d.error);
+    } else {
+      appendMsg('assistant', d.response || 'No response');
+      if (d.chatId) currentChatId = d.chatId;
+    }
+
+    if (isDemo && count >= DEMO_MAX) {
+      appendMsg('assistant', icon('alert') + ' **Demo limit reached.** [Sign up](signup.html) for unlimited messages.');
+    } else if (!isDemo && d.remaining !== undefined && d.remaining <= 5 && d.remaining >= 0) {
+      appendMsg('assistant', icon('alert') + ' **' + d.remaining + ' messages remaining** this month. [Upgrade to Pro](pricing.html) for unlimited.');
+    }
+  } catch {
+    hideTyping();
+    appendMsg('assistant', 'Network error. Try again.');
+  }
+  m.scrollTop = m.scrollHeight;
+}
+
+let currentChatId = null;
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+function esc(t) { return String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+function appendMsg(role, content) {
+  const m = document.getElementById('msgs');
+  const d = document.createElement('div');
+  d.className = 'msg msg-' + (role === 'user' ? 'user' : 'ai');
+  const avatar = role === 'user'
+    ? (isLoggedIn ? (user.name || 'U')[0].toUpperCase() : 'Y')
+    : 'T';
+  d.innerHTML = `<div class="avatar">${avatar}</div><div class="content">${role === 'assistant' ? marked.parse(content) : content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</div>`;
+  m.appendChild(d);
+}
+
+function showTyping() {
+  const m = document.getElementById('msgs');
+  const d = document.createElement('div');
+  d.className = 'msg msg-ai';
+  d.id = 'typing';
+  d.innerHTML = '<div class="avatar">T</div><div class="content"><div class="typing"><span></span><span></span><span></span></div></div>';
+  m.appendChild(d);
+  m.scrollTop = m.scrollHeight;
+}
+
+function hideTyping() {
+  const e = document.getElementById('typing');
+  if (e) e.remove();
+}
+
+function logout() {
+  localStorage.removeItem('ta_token');
+  localStorage.removeItem('ta_user');
+  sessionStorage.removeItem('ta_token');
+  sessionStorage.removeItem('ta_user');
+  window.location.reload();
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
