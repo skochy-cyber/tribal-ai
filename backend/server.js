@@ -37,11 +37,15 @@ const ADMIN_EMAIL    = process.env.ADMIN_EMAIL || 'obasanjosamuel404@gmail.com';
 if (!process.env.ADMIN_PASSWORD) { console.error('❌ FATAL: ADMIN_PASSWORD not set in .env — refusing to start.'); process.exit(1); }
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const OPENAI_API_KEY    = process.env.OPENAI_API_KEY || '';
+// NOTE: these are `let`, not `const` — Admin Settings (below) can override them at
+// runtime so a key entered in the UI works immediately without a redeploy. Runtime
+// overrides live in server memory only and are lost on restart; for a permanent key,
+// set the real environment variable in Render's dashboard (Settings → Environment).
+let ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
+let OPENAI_API_KEY    = process.env.OPENAI_API_KEY || '';
 const PAYSTACK_SECRET    = process.env.PAYSTACK_SECRET || '';
 const GOOGLE_CLIENT_ID  = process.env.GOOGLE_CLIENT_ID  || '';
-const GROQ_API_KEY      = process.env.GROQ_API_KEY      || '';
+let GROQ_API_KEY      = process.env.GROQ_API_KEY      || '';
 const WEB_SEARCH_API    = process.env.WEB_SEARCH_API    || ''; // SerpAPI/Tavily key
 const FREE_LIMIT  = parseInt(process.env.FREE_MONTHLY_LIMIT) || 50;
 const PRO_LIMIT   = parseInt(process.env.PRO_MONTHLY_LIMIT) || 9999;
@@ -57,6 +61,45 @@ const AI_MODELS = [
   { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B', provider: 'groq', tier: 'free' },
   { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B', provider: 'groq', tier: 'free' },
 ];
+
+// ── AI provider routing ─────────────────────────────────────────────────────
+// Resolves which provider a selected model id actually belongs to, so chat
+// routes call the right API instead of always trying Anthropic first.
+function resolveProvider(modelId) {
+  const found = AI_MODELS.find(m => m.id === modelId);
+  if (found) return found.provider;
+  // Loose fallback for legacy/free-text model strings that predate AI_MODELS entries
+  if ((modelId || '').includes('claude')) return 'anthropic';
+  if ((modelId || '').includes('gpt')) return 'openai';
+  if ((modelId || '').includes('llama') || (modelId || '').includes('mixtral')) return 'groq';
+  return 'anthropic';
+}
+
+// Maps our model ids to the real Groq model string (Groq uses the same ids currently,
+// but this indirection means AI_MODELS can change without touching call sites).
+function groqModelId(modelId) {
+  const found = AI_MODELS.find(m => m.id === modelId && m.provider === 'groq');
+  return found ? found.id : 'llama-3.3-70b-versatile';
+}
+
+// Groq's API is OpenAI-compatible (chat/completions shape), so this is a thin wrapper.
+async function callGroq(apiMessages, modelId) {
+  if (!GROQ_API_KEY) return null;
+  try {
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` },
+      body: JSON.stringify({ model: groqModelId(modelId), messages: apiMessages, max_tokens: 4096 }),
+    });
+    const data = await r.json();
+    if (r.ok) return data.choices?.[0]?.message?.content || 'No response';
+    console.error('Groq error:', data.error?.message || r.status);
+    return null;
+  } catch (e) {
+    console.error('Groq error:', e.message);
+    return null;
+  }
+}
 
 app.set('trust proxy', 1);
 
@@ -437,9 +480,10 @@ app.post('/api/chat', requireAuth, chatLimit, async (req, res) => {
     ];
 
     const model = reqModel || chat.model || 'claude-sonnet-4';
+    const provider = resolveProvider(model);
     let aiResponse = '';
 
-    if (ANTHROPIC_API_KEY && (model.includes('claude') || model === 'claude-sonnet-4')) {
+    if (provider === 'anthropic' && ANTHROPIC_API_KEY) {
       try {
         const r = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -452,7 +496,7 @@ app.post('/api/chat', requireAuth, chatLimit, async (req, res) => {
       } catch (e) { console.error('Anthropic error:', e.message); }
     }
 
-    if (!aiResponse && OPENAI_API_KEY) {
+    if (!aiResponse && provider === 'openai' && OPENAI_API_KEY) {
       try {
         const r = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -465,8 +509,39 @@ app.post('/api/chat', requireAuth, chatLimit, async (req, res) => {
       } catch (e) { console.error('OpenAI error:', e.message); }
     }
 
+    if (!aiResponse && provider === 'groq') {
+      aiResponse = await callGroq(apiMessages, model) || '';
+    }
+
+    // Last-resort fallback: if the selected provider had no key or failed, try whatever key IS configured
+    if (!aiResponse && ANTHROPIC_API_KEY && provider !== 'anthropic') {
+      try {
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model: 'claude-sonnet-4-20250514', messages: apiMessages.filter(m => m.role !== 'system'), system: apiMessages[0].content, max_tokens: 4096 }),
+        });
+        const data = await r.json();
+        if (r.ok) aiResponse = data.content?.[0]?.text || '';
+      } catch (e) { console.error('Anthropic fallback error:', e.message); }
+    }
+    if (!aiResponse && OPENAI_API_KEY && provider !== 'openai') {
+      try {
+        const r = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+          body: JSON.stringify({ model: 'gpt-4o', messages: apiMessages, max_tokens: 4096 }),
+        });
+        const data = await r.json();
+        if (r.ok) aiResponse = data.choices?.[0]?.message?.content || '';
+      } catch (e) { console.error('OpenAI fallback error:', e.message); }
+    }
+    if (!aiResponse && GROQ_API_KEY && provider !== 'groq') {
+      aiResponse = await callGroq(apiMessages, model) || '';
+    }
+
     if (!aiResponse) {
-      aiResponse = `I received your message: "${message}"\n\n⚠️ No AI API key configured yet. Add your ANTHROPIC_API_KEY or OPENAI_API_KEY to the .env file to enable AI responses.\n\nFor now, I can help you:\n- Set up the backend\n- Test the API endpoints\n- Configure the AI providers\n\nWhat would you like to do?`;
+      aiResponse = `I received your message: "${message}"\n\n⚠️ No AI API key configured yet. Add your ANTHROPIC_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY as a real environment variable on Render (not the Admin Settings page) to enable AI responses.\n\nFor now, I can help you:\n- Set up the backend\n- Test the API endpoints\n- Configure the AI providers\n\nWhat would you like to do?`;
     }
 
     chat.messages.push({ role: 'assistant', content: aiResponse, timestamp: new Date() });
@@ -886,9 +961,10 @@ app.post('/api/chat/stream', requireAuth, chatLimit, async (req, res) => {
 
     const systemMsg = (user.customInstructions || '') + '\n\nYou are Tribal AI, a helpful AI assistant. Be concise and actionable. Format code in markdown.' + memoryContext;
     const model = reqModel || chat.model || 'claude-sonnet-4';
+    const provider = resolveProvider(model);
 
-    // Try streaming with Anthropic
-    if (ANTHROPIC_API_KEY && model.includes('claude')) {
+    // Try streaming with Anthropic (only when Claude is the actually-selected provider)
+    if (provider === 'anthropic' && ANTHROPIC_API_KEY) {
       try {
         const r = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -923,9 +999,46 @@ app.post('/api/chat/stream', requireAuth, chatLimit, async (req, res) => {
       } catch (e) { console.error('Stream error:', e.message); }
     }
 
-    // Fallback: non-streaming
+    // Try streaming with Groq (OpenAI-compatible SSE chunk format)
+    if (provider === 'groq' && GROQ_API_KEY) {
+      try {
+        const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` },
+          body: JSON.stringify({ model: groqModelId(model), messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: message }], max_tokens: 4096, stream: true }),
+        });
+
+        if (r.ok && r.body) {
+          let fullResponse = '';
+          for await (const chunk of r.body) {
+            const str = chunk.toString();
+            const lines = str.split('\n').filter(l => l.startsWith('data: ') && l.slice(6).trim() !== '[DONE]');
+            for (const line of lines) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                const delta = data.choices?.[0]?.delta?.content;
+                if (delta) {
+                  fullResponse += delta;
+                  res.write(`data: ${JSON.stringify({ text: delta, done: false })}\n\n`);
+                }
+              } catch {}
+            }
+          }
+          if (fullResponse) {
+            chat.messages.push({ role: 'assistant', content: fullResponse, timestamp: new Date() });
+            chat.updatedAt = new Date();
+            if (MONGO_URI) { await chat.save(); await User.findByIdAndUpdate(req.user.id, { $inc: { messagesThisMonth: 1, totalMessages: 1 } }); }
+            else { user.messagesThisMonth++; user.totalMessages++; }
+            res.write(`data: ${JSON.stringify({ done: true, chatId: chat._id || chat.id, fullResponse })}\n\n`);
+            res.end(); return;
+          }
+        }
+      } catch (e) { console.error('Groq stream error:', e.message); }
+    }
+
+    // Fallback: non-streaming (tries the selected provider first, then whatever key is configured)
     let aiResponse = '';
-    if (ANTHROPIC_API_KEY && model.includes('claude')) {
+    if (provider === 'anthropic' && ANTHROPIC_API_KEY) {
       try {
         const r = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
@@ -935,7 +1048,7 @@ app.post('/api/chat/stream', requireAuth, chatLimit, async (req, res) => {
         if (r.ok) aiResponse = data.content?.[0]?.text;
       } catch {}
     }
-    if (!aiResponse && OPENAI_API_KEY) {
+    if (!aiResponse && provider === 'openai' && OPENAI_API_KEY) {
       try {
         const r = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
@@ -944,6 +1057,33 @@ app.post('/api/chat/stream', requireAuth, chatLimit, async (req, res) => {
         const data = await r.json();
         if (r.ok) aiResponse = data.choices?.[0]?.message?.content;
       } catch {}
+    }
+    if (!aiResponse && provider === 'groq' && GROQ_API_KEY) {
+      aiResponse = await callGroq([{ role: 'system', content: systemMsg }, { role: 'user', content: message }], model) || '';
+    }
+    // Cross-provider fallback if the selected provider had no key or failed
+    if (!aiResponse && ANTHROPIC_API_KEY && provider !== 'anthropic') {
+      try {
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model: 'claude-sonnet-4-20250514', messages: [{ role: 'user', content: message }], system: systemMsg, max_tokens: 4096 }),
+        });
+        const data = await r.json();
+        if (r.ok) aiResponse = data.content?.[0]?.text || '';
+      } catch {}
+    }
+    if (!aiResponse && OPENAI_API_KEY && provider !== 'openai') {
+      try {
+        const r = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+          body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: message }], max_tokens: 4096 }),
+        });
+        const data = await r.json();
+        if (r.ok) aiResponse = data.choices?.[0]?.message?.content || '';
+      } catch {}
+    }
+    if (!aiResponse && GROQ_API_KEY && provider !== 'groq') {
+      aiResponse = await callGroq([{ role: 'system', content: systemMsg }, { role: 'user', content: message }], model) || '';
     }
     if (!aiResponse) aiResponse = `Received: "${message}"\n\n⚠️ No AI provider configured.`;
 
@@ -1607,8 +1747,17 @@ app.get('/api/admin/settings', requireAuth, adminMw, (req, res) => {
 });
 
 app.put('/api/admin/settings', requireAuth, adminMw, (req, res) => {
-  Object.assign(systemSettings, req.body);
-  res.json({ ok: true, settings: systemSettings });
+  const { groqKey, anthropicKey, openaiKey, ...rest } = req.body;
+
+  // Apply API keys live so the UI field actually takes effect immediately.
+  // This is an in-memory override — it's lost on restart/redeploy. For a
+  // permanent key, set it as a real environment variable in Render instead.
+  if (typeof groqKey === 'string' && groqKey.trim()) GROQ_API_KEY = groqKey.trim();
+  if (typeof anthropicKey === 'string' && anthropicKey.trim()) ANTHROPIC_API_KEY = anthropicKey.trim();
+  if (typeof openaiKey === 'string' && openaiKey.trim()) OPENAI_API_KEY = openaiKey.trim();
+
+  Object.assign(systemSettings, rest);
+  res.json({ ok: true, settings: systemSettings, keysConfigured: { groq: !!GROQ_API_KEY, anthropic: !!ANTHROPIC_API_KEY, openai: !!OPENAI_API_KEY } });
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1819,7 +1968,9 @@ async function generateAIResponse(message, model, history) {
     { role: 'user', content: message }
   ];
 
-  if (ANTHROPIC_API_KEY && (model || '').includes('claude')) {
+  const provider = resolveProvider(model);
+
+  if (provider === 'anthropic' && ANTHROPIC_API_KEY) {
     try {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -1831,7 +1982,7 @@ async function generateAIResponse(message, model, history) {
     } catch {}
   }
 
-  if (OPENAI_API_KEY) {
+  if (provider === 'openai' && OPENAI_API_KEY) {
     try {
       const r = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -1841,6 +1992,39 @@ async function generateAIResponse(message, model, history) {
       const data = await r.json();
       if (r.ok) return data.choices?.[0]?.message?.content || 'No response';
     } catch {}
+  }
+
+  if (provider === 'groq') {
+    const groqResult = await callGroq(apiMessages, model);
+    if (groqResult) return groqResult;
+  }
+
+  // Cross-provider fallback: selected provider had no key or failed — try whatever key IS configured
+  if (ANTHROPIC_API_KEY && provider !== 'anthropic') {
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', messages: apiMessages.filter(m => m.role !== 'system'), system: apiMessages[0].content, max_tokens: 4096 }),
+      });
+      const data = await r.json();
+      if (r.ok && data.content?.[0]?.text) return data.content[0].text;
+    } catch {}
+  }
+  if (OPENAI_API_KEY && provider !== 'openai') {
+    try {
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+        body: JSON.stringify({ model: 'gpt-4o', messages: apiMessages, max_tokens: 4096 }),
+      });
+      const data = await r.json();
+      if (r.ok && data.choices?.[0]?.message?.content) return data.choices[0].message.content;
+    } catch {}
+  }
+  if (GROQ_API_KEY && provider !== 'groq') {
+    const groqResult = await callGroq(apiMessages, model);
+    if (groqResult) return groqResult;
   }
 
   return `I received your message: "${message}"\n\n⚠️ No AI API key configured.`;
@@ -2880,4 +3064,3 @@ app.listen(PORT, () => {
   console.log(`🗄️  DB: ${MONGO_URI ? 'MongoDB Atlas' : 'In-memory'}`);
   console.log(`✅ All routes loaded successfully`);
 });
-
