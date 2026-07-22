@@ -109,7 +109,7 @@ footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);
 </main>
 <footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
 <script>
-if (localStorage.getItem('ta_token') || sessionStorage.getItem('ta_token')) window.location.href = '/';
+if (localStorage.getItem('ta_token') || sessionStorage.getItem('ta_token')) window.location.href = '/playground.html';
 
 function togglePass(id, btn) {
   const input = document.getElementById(id);
@@ -154,7 +154,7 @@ form.addEventListener('submit', async e => {
     if (!res.ok) throw new Error(data.error || 'Registration failed');
     localStorage.setItem('ta_token', data.token);
     localStorage.setItem('ta_user', JSON.stringify(data.user));
-    window.location.href = '/';
+    window.location.href = '/playground.html';
   } catch (err) {
     showErr(err.message || 'Registration failed');
     btn.disabled = false; btn.textContent = 'Create Account';

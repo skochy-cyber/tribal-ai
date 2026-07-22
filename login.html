@@ -35,6 +35,11 @@ h1 em{color:var(--accent);font-style:italic}
 .fi{width:100%;padding:.82rem 1rem;border:1.5px solid var(--border);border-radius:var(--r);background:var(--bg3);color:var(--ink);font:inherit;font-size:.9rem;outline:none;transition:.15s}
 .fi:focus{background:var(--bg);border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg)}
 .fi::placeholder{color:var(--ink4)}
+.pass-wrap{position:relative}
+.pass-wrap .fi{padding-right:3rem}
+.pass-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--ink4);cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.pass-toggle:hover{color:var(--ink2)}
+.pass-toggle svg{width:18px;height:18px}
 .row{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:2px 0 18px}
 .check{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--ink3);cursor:pointer}
 .check input{accent-color:var(--accent)}
@@ -70,20 +75,36 @@ footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);
       </div>
       <div class="fg">
         <label for="password">Password</label>
-        <input class="fi" id="password" type="password" placeholder="Your password" autocomplete="current-password" required>
+        <div class="pass-wrap">
+          <input class="fi" id="password" type="password" placeholder="Your password" autocomplete="current-password" required>
+          <button type="button" class="pass-toggle" onclick="togglePass(this)" aria-label="Show password">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
       <div class="row">
         <label class="check"><input id="remember" type="checkbox" checked> Remember me</label>
         <a class="small" href="forgot-password.html">Forgot password?</a>
       </div>
-      <button id="submitBtn" type="submit">Sign in</button>
+      <button id="submitBtn" class="btn" type="submit">Sign in</button>
     </form>
     <div class="foot">New here? <a href="signup.html">Create an account</a></div>
   </section>
 </main>
 <footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
 <script>
-if (localStorage.getItem('ta_token') || sessionStorage.getItem('ta_token')) window.location.href = '/';
+if (localStorage.getItem('ta_token') || sessionStorage.getItem('ta_token')) window.location.href = '/playground.html';
+
+function togglePass(btn) {
+  const input = document.getElementById('password');
+  const isPassword = input.type === 'password';
+  input.type = isPassword ? 'text' : 'password';
+  btn.innerHTML = isPassword
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+}
+
 const form = document.getElementById('loginForm');
 const errBox = document.getElementById('errBox');
 const btn = document.getElementById('submitBtn');
@@ -104,7 +125,7 @@ form.addEventListener('submit', async e => {
     const store = remember ? localStorage : sessionStorage;
     store.setItem('ta_token', data.token);
     store.setItem('ta_user', JSON.stringify(data.user));
-    window.location.href = '/';
+    window.location.href = '/playground.html';
   } catch (err) {
     showErr(err.message || 'Login failed');
     btn.disabled = false; btn.textContent = 'Sign in';
