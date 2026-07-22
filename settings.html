@@ -142,7 +142,7 @@ footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);
 <footer>© 2026 Tribal AI · Built by Obasanjo Samuel · Tribal Tech</footer>
 
 <script>
-const token = localStorage.getItem('ta_token');
+const token = localStorage.getItem('ta_token') || sessionStorage.getItem('ta_token');
 const user = JSON.parse(localStorage.getItem('ta_user') || 'null');
 if (!token || !user) window.location.href = 'login.html';
 

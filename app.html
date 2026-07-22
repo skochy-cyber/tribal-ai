@@ -1156,7 +1156,7 @@ body {
 <script>
 // ── Config ──────────────────────────────────────────────────────────────────
 const API = '';
-let token = localStorage.getItem('ta_token');
+let token = localStorage.getItem('ta_token') || sessionStorage.getItem('ta_token');
 let user  = JSON.parse(localStorage.getItem('ta_user') || 'null');
 let chats = [];
 let activeChatId = null;
@@ -1236,10 +1236,15 @@ async function loadStreak() {
 if (token) setTimeout(loadStreak, 2000);
 
 // ── Google Social Login ──────────────────────────────────────────────────────
-function initGoogleLogin() {
+async function initGoogleLogin() {
   if (!window.google?.accounts?.id) return;
-  google.accounts.id.initialize({ client_id: 'YOUR_GOOGLE_CLIENT_ID', callback: handleGoogleLogin });
-  google.accounts.id.renderButton(document.getElementById('googleLoginBtn'), { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' });
+  try {
+    const r = await fetch(`${API}/api/config/google-client-id`);
+    const d = await r.json();
+    if (!d.clientId) return; // Google not configured
+    google.accounts.id.initialize({ client_id: d.clientId, callback: handleGoogleLogin });
+    google.accounts.id.renderButton(document.getElementById('googleLoginBtn'), { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' });
+  } catch {}
 }
 
 async function handleGoogleLogin(response) {

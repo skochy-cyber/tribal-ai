@@ -249,7 +249,7 @@ app.post('/api/register', async (req, res) => {
   const sanitizedName = (name || '').replace(/<[^>]*>/g, '').trim().slice(0, 100);
   try {
     if (MONGO_URI) {
-      const existing = await User.findOne({ email });
+      const existing = await User.findOne({ email: email.toLowerCase() });
       if (existing) return res.status(409).json({ error: 'Email already registered' });
       const userData = { email, name: sanitizedName, password: await bcrypt.hash(password, 10) };
       if (referralCode) {
@@ -991,7 +991,7 @@ app.post('/api/code/run', requireAuth, adminMw, async (req, res) => {
     try { fs.unlinkSync(file); } catch {}
     res.json({ output: output.slice(0, 50000), language, success: true });
   } catch (e) {
-    try { fs.unlinkSync(`${tmpDir}/ta_${id}.*`); } catch {}
+    try { if (file) fs.unlinkSync(file); } catch {}
     res.json({ output: (e.stderr || e.stdout || e.message || 'Execution failed').slice(0, 50000), language, success: false });
   }
 });
@@ -2792,6 +2792,10 @@ app.get('/api/changelog', (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // STATUS ENDPOINT
 // ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/config/google-client-id', (req, res) => {
+  res.json({ clientId: GOOGLE_CLIENT_ID || null });
+});
 
 app.get('/api/status', (req, res) => {
   res.json({
