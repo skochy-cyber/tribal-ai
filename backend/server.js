@@ -2730,6 +2730,58 @@ app.post('/api/contact', async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// CHANGELOG
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/changelog', (req, res) => {
+  res.json({
+    entries: [
+      { version: '5.0.0', date: '2026-07-22', title: 'Major Feature Update', changes: ['Branching conversations', 'Keyboard shortcuts', 'Multi-language support', '2FA authentication', 'Session management', 'Analytics dashboard', 'GDPR data export', 'Achievements', 'Forgot password', 'Bulk operations', 'Document analysis', 'Code tools', 'Creative generators'] },
+      { version: '4.0.0', date: '2026-07-21', title: 'Power Features', changes: ['Streaming responses', 'Code execution', 'Conversation memory', 'Image generation', 'Text-to-speech', 'Chat folders'] },
+      { version: '3.0.0', date: '2026-07-21', title: 'Platform Features', changes: ['Google social login', 'Multi-model switching', 'Web search', 'Templates library', 'Team accounts'] },
+      { version: '2.0.0', date: '2026-07-21', title: 'Monetization', changes: ['Paystack payments', 'File upload', 'Referral system', 'Chat sharing', 'Export chats', 'Developer API', 'PWA'] },
+      { version: '1.0.0', date: '2026-07-21', title: 'Launch', changes: ['AI chat', 'User auth', 'Admin dashboard', 'Dark mode', 'Usage limits'] },
+    ]
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STATUS ENDPOINT
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/status', (req, res) => {
+  res.json({
+    status: 'operational',
+    version: '5.0.0',
+    uptime: Math.floor(process.uptime()),
+    db: MONGO_URI ? 'connected' : 'in-memory',
+    services: {
+      api: 'operational',
+      ai: ANTHROPIC_API_KEY || OPENAI_API_KEY ? 'operational' : 'no-provider',
+      payments: PAYSTACK_SECRET ? 'operational' : 'demo-mode',
+      auth: 'operational',
+      storage: MONGO_URI ? 'mongodb' : 'memory',
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// HEALTH CHECK
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '5.0.0', db: MONGO_URI ? 'mongodb' : 'memory', features: ['chat','upload','share','export','referrals','payments','api','social-login','multi-model','web-search','templates','teams','streaming','code-exec','memory','image-gen','tts','folders','branching','shortcuts','translate','2fa','sessions','analytics','search','pin','archive','edit-resend','reactions','alerts','audit','status','contact','changelog','achievements','forgot-password','bulk-ops','document-analysis','code-tools','creative-generators'], uptime: Math.floor(process.uptime()) }));
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CATCH-ALL — serve static files for non-API routes
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) res.sendFile(path.join(__dirname, '..', 'index.html'));
+  else res.status(404).json({ error: 'Not found' });
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Tribal AI v5.0 running on port ${PORT}`);
   console.log(`🤖  Anthropic: ${ANTHROPIC_API_KEY ? '✅' : '❌'}`);
