@@ -228,6 +228,15 @@ let currentChatId = null;
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 function esc(t) { return String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function sanitizeHtml(html) {
+  return html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<object[^>]*>[\s\S]*?<\/object>/gi, '')
+    .replace(/<embed[^>]*>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
+    .replace(/javascript\s*:/gi, '');
+}
 
 function appendMsg(role, content) {
   const m = document.getElementById('msgs');
@@ -236,7 +245,7 @@ function appendMsg(role, content) {
   const avatar = role === 'user'
     ? (isLoggedIn ? (user.name || 'U')[0].toUpperCase() : 'Y')
     : 'T';
-  d.innerHTML = `<div class="avatar">${avatar}</div><div class="content">${role === 'assistant' ? marked.parse(content) : content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</div>`;
+  d.innerHTML = `<div class="avatar">${avatar}</div><div class="content">${role === 'assistant' ? sanitizeHtml(marked.parse(content)) : content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</div>`;
   m.appendChild(d);
 }
 

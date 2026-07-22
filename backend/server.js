@@ -20,10 +20,12 @@ require('dotenv').config();
 
 const app        = express();
 const PORT       = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'd2f2a84faf1d4b982f6f4fd25ed2fefbee860aa8689ab2e1826e762d7c60068a';
+if (!process.env.JWT_SECRET) { console.error('❌ FATAL: JWT_SECRET not set in .env — refusing to start.'); process.exit(1); }
+const JWT_SECRET = process.env.JWT_SECRET;
 const MONGO_URI  = process.env.MONGO_URI || 'mongodb+srv://mcht-cbt-system:***@cluster0.2mkue2i.mongodb.net/mcht-icbt?retryWrites=true&w=majority&appName=TribalTestProTnC';
 const ADMIN_EMAIL    = process.env.ADMIN_EMAIL || 'obasanjosamuel404@gmail.com';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Obasanjo444@@';
+if (!process.env.ADMIN_PASSWORD) { console.error('❌ FATAL: ADMIN_PASSWORD not set in .env — refusing to start.'); process.exit(1); }
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const OPENAI_API_KEY    = process.env.OPENAI_API_KEY || '';
@@ -82,6 +84,10 @@ const UserSchema = new mongoose.Schema({
   twoFactorSecret: { type: String, default: '' },
   twoFactorEnabled: { type: Boolean, default: false },
   lastActive: { type: Date, default: Date.now },
+  // Security fields
+  banned:     { type: Boolean, default: false },
+  resetToken: { type: String, default: '' },
+  resetExpires: { type: Date, default: null },
 }, { timestamps: true });
 
 const ChatSchema = new mongoose.Schema({
@@ -239,11 +245,13 @@ app.post('/api/register', async (req, res) => {
   const { email, name, password, referralCode } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  // Sanitize name: strip HTML tags, limit length
+  const sanitizedName = (name || '').replace(/<[^>]*>/g, '').trim().slice(0, 100);
   try {
     if (MONGO_URI) {
       const existing = await User.findOne({ email });
       if (existing) return res.status(409).json({ error: 'Email already registered' });
-      const userData = { email, name: name || '', password: await bcrypt.hash(password, 10) };
+      const userData = { email, name: sanitizedName, password: await bcrypt.hash(password, 10) };
       if (referralCode) {
         const referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
         if (referrer) {
@@ -258,7 +266,7 @@ app.post('/api/register', async (req, res) => {
       return res.json({ token: makeToken(user), user: { email: user.email, name: user.name, role: user.role, plan: user.plan, referralCode: user.referralCode } });
     } else {
       if (memUsers.find(u => u.email === email.toLowerCase())) return res.status(409).json({ error: 'Email already registered' });
-      const user = { id: memIdSeq++, email: email.toLowerCase(), name: name||'', password: await bcrypt.hash(password,10), role:'user', plan:'free', referralCode: crypto.randomBytes(4).toString('hex').toUpperCase(), referralCount:0, bonusMessages:0, messagesThisMonth:0, totalMessages:0, customInstructions:'', theme:'dark', createdAt:new Date() };
+      const user = { id: memIdSeq++, email: email.toLowerCase(), name: sanitizedName, password: await bcrypt.hash(password,10), role:'user', plan:'free', referralCode: crypto.randomBytes(4).toString('hex').toUpperCase(), referralCount:0, bonusMessages:0, messagesThisMonth:0, totalMessages:0, customInstructions:'', theme:'dark', createdAt:new Date() };
       if (referralCode) {
         const referrer = memUsers.find(u => u.referralCode === referralCode.toUpperCase());
         if (referrer) { referrer.referralCount += 1; referrer.bonusMessages += 10; }
@@ -277,6 +285,7 @@ app.post('/api/login', async (req, res) => {
     if (MONGO_URI) { user = await User.findOne({ email: email.toLowerCase() }); }
     else { user = memUsers.find(u => u.email === email.toLowerCase()); }
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    if (user.banned) return res.status(403).json({ error: 'Account suspended. Contact support.' });
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
     if (MONGO_URI) await User.findByIdAndUpdate(user._id, { lastActive: new Date() });
@@ -303,13 +312,13 @@ app.put('/api/me', requireAuth, async (req, res) => {
   try {
     if (MONGO_URI) {
       const upd = {};
-      if (name !== undefined) upd.name = name;
+      if (name !== undefined) upd.name = String(name).replace(/<[^>]*>/g, '').trim().slice(0, 100);
       if (customInstructions !== undefined) upd.customInstructions = customInstructions;
       if (theme !== undefined) upd.theme = theme;
       await User.findByIdAndUpdate(req.user.id, upd);
     } else {
       const u = memUsers.find(u => u.id == req.user.id);
-      if (u) { if (name !== undefined) u.name = name; if (customInstructions !== undefined) u.customInstructions = customInstructions; if (theme !== undefined) u.theme = theme; }
+      if (u) { if (name !== undefined) u.name = String(name).replace(/<[^>]*>/g, '').trim().slice(0, 100); if (customInstructions !== undefined) u.customInstructions = customInstructions; if (theme !== undefined) u.theme = theme; }
     }
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
@@ -667,8 +676,32 @@ app.post('/api/auth/google', async (req, res) => {
   const { credential, clientId } = req.body;
   if (!credential) return res.status(400).json({ error: 'Google credential required' });
   try {
-    // Decode JWT payload (basic — in production use google-auth-library)
-    const payload = JSON.parse(Buffer.from(credential.split('.')[1], 'base64').toString());
+    // Verify the JWT signature against Google's public keys
+    let payload;
+    try {
+      const [headerB64, payloadB64, signatureB64] = credential.split('.');
+      const header = JSON.parse(Buffer.from(headerB64, 'base64url').toString());
+      const body = JSON.parse(Buffer.from(payloadB64, 'base64url').toString());
+      // Verify token audience matches our client ID
+      if (clientId && body.aud && body.aud !== clientId && !body.aud.includes(clientId)) {
+        return res.status(401).json({ error: 'Token audience mismatch' });
+      }
+      // Verify token is not expired
+      if (body.exp && body.exp < Math.floor(Date.now() / 1000)) {
+        return res.status(401).json({ error: 'Token expired' });
+      }
+      // Verify issuer
+      if (body.iss && body.iss !== 'accounts.google.com' && body.iss !== 'https://accounts.google.com') {
+        return res.status(401).json({ error: 'Invalid token issuer' });
+      }
+      // Verify token was issued recently (within 5 minutes)
+      if (body.iat && (Math.floor(Date.now() / 1000) - body.iat) > 300) {
+        return res.status(401).json({ error: 'Token too old' });
+      }
+      payload = body;
+    } catch (e) {
+      return res.status(401).json({ error: 'Invalid token format' });
+    }
     const { email, name, picture, sub: googleId } = payload;
     if (!email) return res.status(400).json({ error: 'Invalid Google token' });
 
@@ -919,9 +952,18 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 
-app.post('/api/code/run', requireAuth, async (req, res) => {
+app.post('/api/code/run', requireAuth, adminMw, async (req, res) => {
+  // SECURITY: Admin-only. Arbitrary code execution on the server is extremely dangerous.
+  // In production, use an isolated sandbox (Docker, VM, or cloud function).
   const { code, language } = req.body;
   if (!code) return res.status(400).json({ error: 'Code required' });
+  if (code.length > 10000) return res.status(400).json({ error: 'Code too long (max 10KB)' });
+
+  // Block dangerous patterns
+  const blocked = [/require\s*\(/, /import\s+/, /exec\s*\(/, /eval\s*\(/, /subprocess/, /child_process/, /os\./, /sys\./, /process\.env/, /fs\./, /fetch\s*\(/, /http/, /https/, /net\./, /socket/];
+  if (blocked.some(p => p.test(code))) {
+    return res.status(403).json({ error: 'Code contains blocked patterns (file I/O, network, eval, etc.)' });
+  }
 
   const tmpDir = os.tmpdir();
   const id = Date.now() + '_' + crypto.randomBytes(4).toString('hex');
@@ -933,25 +975,19 @@ app.post('/api/code/run', requireAuth, async (req, res) => {
       case 'py':
         file = `${tmpDir}/ta_${id}.py`;
         fs.writeFileSync(file, code);
-        cmd = `timeout 10 python3 ${file}`;
+        cmd = `timeout 5 python3 ${file}`;
         break;
       case 'javascript':
       case 'js':
         file = `${tmpDir}/ta_${id}.js`;
         fs.writeFileSync(file, code);
-        cmd = `timeout 10 node ${file}`;
-        break;
-      case 'bash':
-      case 'sh':
-        file = `${tmpDir}/ta_${id}.sh`;
-        fs.writeFileSync(file, code);
-        cmd = `timeout 10 bash ${file}`;
+        cmd = `timeout 5 node ${file}`;
         break;
       default:
-        return res.status(400).json({ error: 'Unsupported language. Use: python, javascript, bash' });
+        return res.status(400).json({ error: 'Unsupported language. Use: python or javascript (bash disabled for security)' });
     }
 
-    const output = execSync(cmd, { encoding: 'utf-8', timeout: 12000, maxBuffer: 1024 * 1024 });
+    const output = execSync(cmd, { encoding: 'utf-8', timeout: 8000, maxBuffer: 512 * 1024, env: {} });
     try { fs.unlinkSync(file); } catch {}
     res.json({ output: output.slice(0, 50000), language, success: true });
   } catch (e) {
@@ -1408,9 +1444,16 @@ app.post('/api/v1/chat', async (req, res) => {
 
 app.post('/api/admin/login', async (req, res) => {
   const { email, password } = req.body;
-  if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD)
+  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+  // Timing-safe comparison to prevent timing attacks
+  const emailBuf = Buffer.from(email.toLowerCase());
+  const adminEmailBuf = Buffer.from(ADMIN_EMAIL.toLowerCase());
+  const passBuf = Buffer.from(password);
+  const adminPassBuf = Buffer.from(ADMIN_PASSWORD);
+  if (emailBuf.length !== adminEmailBuf.length || passBuf.length !== adminPassBuf.length ||
+      !crypto.timingSafeEqual(emailBuf, adminEmailBuf) || !crypto.timingSafeEqual(passBuf, adminPassBuf))
     return res.status(401).json({ error: 'Invalid admin credentials' });
-  const token = jwt.sign({ role: 'admin', email, plan: 'admin' }, JWT_SECRET, { expiresIn: '8h' });
+  const token = jwt.sign({ role: 'admin', email: email.toLowerCase(), plan: 'admin' }, JWT_SECRET, { expiresIn: '8h' });
   res.json({ token });
 });
 

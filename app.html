@@ -1531,7 +1531,7 @@ function appendMsg(role, content) {
   const div = document.createElement('div');
   div.className = `msg msg-${role === 'user' ? 'user' : 'ai'}`;
   const avatar = role === 'user' ? (user?.name || 'U')[0].toUpperCase() : 'T';
-  const rendered = role === 'assistant' ? marked.parse(content) : esc(content).replace(/\n/g, '<br>');
+  const rendered = role === 'assistant' ? sanitizeHtml(marked.parse(content)) : esc(content).replace(/\n/g, '<br>');
   const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
   div.innerHTML = `
     <div class="msg-avatar">${avatar}</div>
@@ -1567,6 +1567,20 @@ function showTyping() {
 function hideTyping() { const el = document.getElementById('typingMsg'); if (el) el.remove(); }
 function scrollToBottom() { const el = document.getElementById('chatArea'); el.scrollTop = el.scrollHeight; }
 function esc(t) { return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function sanitizeHtml(html) {
+  // Strip dangerous tags and attributes from HTML
+  return html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<object[^>]*>[\s\S]*?<\/object>/gi, '')
+    .replace(/<embed[^>]*>/gi, '')
+    .replace(/<form[^>]*>[\s\S]*?<\/form>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
+    .replace(/javascript\s*:/gi, '')
+    .replace(/data\s*:/gi, '')
+    .replace(/vbscript\s*:/gi, '');
+}
 
 // ── File Upload ──────────────────────────────────────────────────────────
 function triggerFileUpload() { document.getElementById('fileInput').click(); }
@@ -1886,7 +1900,7 @@ async function compareModels(message) {
       const container = document.getElementById('messages');
       const div = document.createElement('div');
       div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0';
-      div.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px"><div style="font-size:.78rem;color:var(--accent);font-weight:600;margin-bottom:8px">${data.modelA}</div><div style="font-size:.88rem;line-height:1.6;color:var(--ink2)">${marked.parse(data.responseA)}</div></div><div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px"><div style="font-size:.78rem;color:var(--blue);font-weight:600;margin-bottom:8px">${data.modelB}</div><div style="font-size:.88rem;line-height:1.6;color:var(--ink2)">${marked.parse(data.responseB)}</div></div>`;
+      div.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px"><div style="font-size:.78rem;color:var(--accent);font-weight:600;margin-bottom:8px">${data.modelA}</div><div style="font-size:.88rem;line-height:1.6;color:var(--ink2)">${sanitizeHtml(marked.parse(data.responseA))}</div></div><div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px"><div style="font-size:.78rem;color:var(--blue);font-weight:600;margin-bottom:8px">${data.modelB}</div><div style="font-size:.88rem;line-height:1.6;color:var(--ink2)">${sanitizeHtml(marked.parse(data.responseB))}</div></div>`;
       container.appendChild(div);
       container.scrollTop = container.scrollHeight;
     }
