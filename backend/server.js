@@ -9,7 +9,17 @@
 const express   = require('express');
 const cors      = require('cors');
 const multer      = require('multer');
-const upload      = multer({ dest: 'uploads/' });
+const upload      = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|gif|webp|pdf|doc|docx|txt|csv|json|md|py|js|ts|html|css|xml|zip/;
+    const ext = allowed.test(require('path').extname(file.originalname).toLowerCase());
+    const mime = allowed.test(file.mimetype);
+    if (ext || mime) return cb(null, true);
+    cb(new Error('File type not allowed'));
+  }
+});
 const bcrypt    = require('bcryptjs');
 const jwt       = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
@@ -288,6 +298,10 @@ app.post('/api/login', async (req, res) => {
     if (user.banned) return res.status(403).json({ error: 'Account suspended. Contact support.' });
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+    if (user.twoFactorEnabled && user.twoFactorSecret) {
+      const tempToken = jwt.sign({ id: user._id || user.id, email: user.email, temp2fa: true }, JWT_SECRET, { expiresIn: '5m' });
+      return res.json({ requires2fa: true, tempToken, message: 'Enter your authenticator code' });
+    }
     if (MONGO_URI) await User.findByIdAndUpdate(user._id, { lastActive: new Date() });
     res.json({ token: makeToken(user), user: { email: user.email, name: user.name, role: user.role, plan: user.plan, referralCode: user.referralCode } });
   } catch (e) { res.status(500).json({ error: 'Login failed' }); }
@@ -531,6 +545,11 @@ app.post('/api/chats/:id/share', requireAuth, async (req, res) => {
 
     res.json({ shared: chat.shared, shareId: chat.shareId, url: `/share/${chat.shareId}` });
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// Serve shared chat page for /share/:id links
+app.get('/share/:shareId', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'shared.html'));
 });
 
 app.get('/api/shared/:shareId', async (req, res) => {
@@ -1082,8 +1101,9 @@ app.post('/api/translate', requireAuth, async (req, res) => {
 // SESSION MANAGEMENT & 2FA
 // ══════════════════════════════════════════════════════════════════════════════
 
-const speakeasy = require('speakeasy') || null;
-const QRCode = require('qrcode') || null;
+let speakeasy, QRCode;
+try { speakeasy = require('speakeasy'); } catch { speakeasy = null; }
+try { QRCode = require('qrcode'); } catch { QRCode = null; }
 
 app.get('/api/sessions', requireAuth, async (req, res) => {
   try {
@@ -1119,34 +1139,53 @@ app.post('/api/2fa/setup', requireAuth, async (req, res) => {
     else user = memUsers.find(u => u.id == req.user.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const secret = crypto.randomBytes(20).toString('hex');
-    const otpauth = `otpauth://totp/TribalAI:${user.email}?secret=${secret}&issuer=TribalAI`;
+    const secret = speakeasy.generateSecret({ length: 20 });
+    const base32Secret = secret.base32;
+    const otpauth = `otpauth://totp/TribalAI:${user.email}?secret=${base32Secret}&issuer=TribalAI`;
 
-    if (MONGO_URI) await User.findByIdAndUpdate(req.user.id, { twoFactorSecret: secret });
-    else user.twoFactorSecret = secret;
+    if (MONGO_URI) await User.findByIdAndUpdate(req.user.id, { twoFactorSecret: base32Secret });
+    else user.twoFactorSecret = base32Secret;
 
     // Generate QR code as data URL
     if (QRCode) {
       const qr = await QRCode.toDataURL(otpauth);
-      return res.json({ secret, qr, otpauth });
+      return res.json({ secret: base32Secret, qr, otpauth });
     }
-    res.json({ secret, otpauth, qr: null });
+    res.json({ secret: base32Secret, otpauth, qr: null });
   } catch (e) { res.status(500).json({ error: 'Setup failed' }); }
 });
 
-app.post('/api/2fa/verify', requireAuth, async (req, res) => {
-  const { code } = req.body;
+app.post('/api/2fa/verify', async (req, res) => {
+  const { code, tempToken } = req.body;
   if (!code) return res.status(400).json({ error: 'Code required' });
   try {
+    let userId;
+    if (tempToken) {
+      try {
+        const decoded = jwt.verify(tempToken, JWT_SECRET);
+        if (!decoded.temp2fa) return res.status(401).json({ error: 'Invalid token' });
+        userId = decoded.id;
+      } catch {
+        return res.status(401).json({ error: 'Invalid or expired 2FA token' });
+      }
+    } else {
+      if (!req.user) return res.status(401).json({ error: 'Auth required' });
+      userId = req.user.id;
+    }
+
     let user;
-    if (MONGO_URI) user = await User.findById(req.user.id);
-    else user = memUsers.find(u => u.id == req.user.id);
+    if (MONGO_URI) user = await User.findById(userId);
+    else user = memUsers.find(u => u.id == userId);
     if (!user?.twoFactorSecret) return res.status(400).json({ error: '2FA not setup' });
 
     if (speakeasy) {
-      const verified = speakeasy.totp.verify({ secret: user.twoFactorSecret, encoding: 'hex', token: code, window: 1 });
+      const verified = speakeasy.totp.verify({ secret: user.twoFactorSecret, encoding: 'base32', token: code, window: 1 });
       if (verified) {
-        if (MONGO_URI) await User.findByIdAndUpdate(req.user.id, { twoFactorEnabled: true });
+        if (tempToken) {
+          if (MONGO_URI) await User.findByIdAndUpdate(userId, { lastActive: new Date() });
+          return res.json({ ok: true, token: makeToken(user), user: { email: user.email, name: user.name, role: user.role, plan: user.plan } });
+        }
+        if (MONGO_URI) await User.findByIdAndUpdate(userId, { twoFactorEnabled: true });
         else user.twoFactorEnabled = true;
         return res.json({ ok: true });
       }
@@ -1376,17 +1415,21 @@ app.post('/api/payments/verify', requireAuth, async (req, res) => {
         }
         return res.json({ ok: true, plan: 'pro' });
       }
+      return res.status(400).json({ error: 'Payment verification failed' });
     }
 
-    // Demo verification
-    if (MONGO_URI) {
-      await Payment.findOneAndUpdate({ reference }, { status: 'success' });
-      await User.findByIdAndUpdate(req.user.id, { plan: 'pro' });
-    } else {
-      const p = memPayments.find(p => p.reference === reference); if (p) p.status = 'success';
-      const u = memUsers.find(u => u.id == req.user.id); if (u) u.plan = 'pro';
+    // Demo verification — only when Paystack is NOT configured
+    if (!PAYSTACK_SECRET) {
+      if (MONGO_URI) {
+        await Payment.findOneAndUpdate({ reference }, { status: 'success' });
+        await User.findByIdAndUpdate(req.user.id, { plan: 'pro' });
+      } else {
+        const p = memPayments.find(p => p.reference === reference); if (p) p.status = 'success';
+        const u = memUsers.find(u => u.id == req.user.id); if (u) u.plan = 'pro';
+      }
+      return res.json({ ok: true, plan: 'pro', demo: true });
     }
-    res.json({ ok: true, plan: 'pro', demo: true });
+    return res.status(400).json({ error: 'Payment verification failed' });
   } catch (e) { res.status(500).json({ error: 'Verification failed' }); }
 });
 

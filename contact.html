@@ -163,13 +163,25 @@ footer{border-top:1px solid var(--border);padding:18px 6%;background:var(--bg2);
 function handleSubmit(e){
   e.preventDefault();
   const btn = document.getElementById('submitBtn');
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const subject = document.getElementById('subject').value.trim();
+  const message = document.getElementById('message').value.trim();
+  if (!email || !message) return;
   btn.disabled = true;
   btn.textContent = 'Sending...';
-  
-  setTimeout(()=>{
+  fetch('/api/contact', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, subject, message })
+  }).then(r => r.json()).then(data => {
     document.getElementById('contactForm').style.display = 'none';
     document.getElementById('successMsg').classList.add('show');
-  }, 1500);
+  }).catch(err => {
+    btn.disabled = false;
+    btn.textContent = 'Send Message';
+    alert('Failed to send message. Please try again.');
+  });
 }
 </script>
 </body>

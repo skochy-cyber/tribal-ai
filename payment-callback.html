@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f0e0b">
+<title>Tribal AI — Payment Processing</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e0b;--bg2:#1a1916;--surface:#1e1d1a;--border:#2e2d29;--ink:#f9f8f6;--ink2:#d6d5d0;--ink3:#a8a49d;--accent:#c84b09;--green:#22c55e;--red:#ef4444;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;display:grid;place-items:center;padding:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px 40px;max-width:440px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.4)}
+.spinner{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 24px}
+@keyframes spin{to{transform:rotate(360deg)}}
+h1{font-family:'Instrument Serif',serif;font-size:1.8rem;font-weight:400;margin-bottom:8px}
+h1 em{color:var(--accent);font-style:italic}
+.status{color:var(--ink3);font-size:.9rem;margin-bottom:24px}
+.success-icon{width:64px;height:64px;border-radius:50%;background:rgba(34,197,94,.15);display:grid;place-items:center;margin:0 auto 24px;font-size:2rem}
+.error-icon{width:64px;height:64px;border-radius:50%;background:rgba(239,68,68,.15);display:grid;place-items:center;margin:0 auto 24px;font-size:2rem}
+.btn{display:inline-block;border:0;border-radius:var(--r);background:var(--accent);color:#fff;padding:.8rem 2rem;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;text-decoration:none;transition:.2s}
+.btn:hover{opacity:.9;transform:translateY(-1px)}
+.btn-secondary{background:var(--bg);border:1px solid var(--border);color:var(--ink2)}
+.btn-secondary:hover{background:var(--bg2)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="loading">
+    <div class="spinner"></div>
+    <h1>Processing <em>payment...</em></h1>
+    <p class="status">Verifying your transaction with Paystack.</p>
+  </div>
+  <div id="success" style="display:none">
+    <div class="success-icon">✅</div>
+    <h1>Payment <em>successful!</em></h1>
+    <p class="status">Your account has been upgraded to Pro. Enjoy unlimited messages!</p>
+    <a class="btn" href="/playground.html">Start chatting →</a>
+  </div>
+  <div id="error" style="display:none">
+    <div class="error-icon">❌</div>
+    <h1>Payment <em>failed</em></h1>
+    <p class="status" id="errorMsg">We couldn't verify your payment. Please try again.</p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <a class="btn btn-secondary" href="/settings.html">Back to settings</a>
+      <a class="btn" href="/pricing.html">Try again</a>
+    </div>
+  </div>
+</div>
+<script>
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  const demo = params.get('demo') === 'true';
+
+  if (!ref) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('errorMsg').textContent = 'No payment reference found.';
+    return;
+  }
+
+  // Wait a moment for Paystack webhook to potentially process first
+  await new Promise(r => setTimeout(r, 2000));
+
+  const token = localStorage.getItem('ta_token') || sessionStorage.getItem('ta_token');
+  if (!token) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('errorMsg').textContent = 'Please log in to complete payment verification.';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/payments/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ reference: ref })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.ok) {
+      // Update local user data
+      const user = JSON.parse(localStorage.getItem('ta_user') || '{}');
+      user.plan = 'pro';
+      localStorage.setItem('ta_user', JSON.stringify(user));
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('success').style.display = 'block';
+    } else {
+      throw new Error(data.error || 'Verification failed');
+    }
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('errorMsg').textContent = err.message || 'Payment verification failed. Please contact support.';
+  }
+})();
+</script>
+</body>
+</html>

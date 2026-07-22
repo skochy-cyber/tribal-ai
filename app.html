@@ -2755,21 +2755,6 @@ async function webSearch(query) {
   return [];
 }
 
-// ═══ SHARE CHAT ═══════════════════════════════════════════════════════
-async function shareChat() {
-  if (!token || !activeChatId) return;
-  try {
-    const r = await fetch(`${API}/api/chats/${activeChatId}/share`, {
-      method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (r.ok) {
-      const data = await r.json();
-      navigator.clipboard.writeText(window.location.origin + data.shareUrl);
-      toast('Link copied to clipboard!', 'ok');
-    }
-  } catch { toast('Failed to share', 'err'); }
-}
-
 // ═══ LOAD PERSONA ON START ═════════════════════════════════════════════
 activePersona = localStorage.getItem('ta_persona') || 'default';
 // ── Icon helper ────────────────────────────────────────────────────────────
